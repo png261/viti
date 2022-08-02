@@ -56,14 +56,17 @@ typedef struct erow {
     char *render;
 } erow;
 
-struct editor {
-    int mode;
-
+struct {
     int rows;
     int cols;
 
     int rowoff;
     int coloff;
+
+} Win;
+
+struct editor {
+    int mode;
 
     int nrows;
     erow *row;
@@ -109,7 +112,6 @@ int readKey() {
 
     if (c == '\x1b') {
         char seq[3];
-
         if (read(STDIN_FILENO, &seq[0], 1) != 1) {
             return ESC;
         }
@@ -230,6 +232,7 @@ void freeRow(erow *row) {
     free(row->render);
     free(row->chars);
 }
+
 void delRow(int at) {
     if (at < 0 || at >= E.nrows) {
         return;
@@ -302,12 +305,13 @@ void delChar() {
     if (Cur.x > 0) {
         rowDelChar(row, Cur.x - 1);
         Cur.x--;
-    } else {
-        Cur.x = E.row[Cur.y - 1].size;
-        rowAppendString(&E.row[Cur.y - 1], row->chars, row->size);
-        delRow(Cur.y);
-        Cur.y--;
+        return;
     }
+
+    Cur.x = E.row[Cur.y - 1].size;
+    rowAppendString(&E.row[Cur.y - 1], row->chars, row->size);
+    delRow(Cur.y);
+    Cur.y--;
 }
 
 /* file i/o */
@@ -337,12 +341,12 @@ void openFile(char *filename) {
     if (!fp) {
         die("fopen");
     }
+
     char *line = NULL;
     size_t linecap = 0;
     ssize_t linelen;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        while (linelen > 0 &&
-               (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
+        while ((line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
             linelen--;
         }
         insertRow(E.nrows, line, linelen);
@@ -372,6 +376,7 @@ void findCallback(char *query, int key) {
     if (key == ENTER || key == ESC) {
         return;
     }
+
     for (int i = 0; i < E.nrows; i++) {
         erow *row = &E.row[i];
         char *match = strstr(row->render, query);
@@ -381,15 +386,15 @@ void findCallback(char *query, int key) {
 
         Cur.y = i;
         Cur.x = RxToCx(row, match - row->render);
-        E.rowoff = E.nrows;
+        Win.rowoff = E.nrows;
     }
 }
 
 void find() {
     int saved_cx = Cur.x;
     int saved_cy = Cur.y;
-    int saved_coloff = E.coloff;
-    int saved_rowoff = E.rowoff;
+    int saved_coloff = Win.coloff;
+    int saved_rowoff = Win.rowoff;
 
     char *query = prompt("/%s", findCallback);
     if (query) {
@@ -400,8 +405,8 @@ void find() {
 
     Cur.x = saved_cx;
     Cur.y = saved_cy;
-    E.coloff = saved_coloff;
-    E.rowoff = saved_rowoff;
+    Win.coloff = saved_coloff;
+    Win.rowoff = saved_rowoff;
 }
 
 /* append buffer */
@@ -581,38 +586,23 @@ void handleKeyPress() {
 }
 
 /* output */
-void renderBlank(struct abuf *ab) { append(ab, "~", 1); }
 
 void renderText(struct abuf *ab, int rowIndex) {
-    int len = E.row[rowIndex].rsize - E.coloff;
-    if (len < 0)
+    int len = E.row[rowIndex].rsize - Win.coloff;
+    if (len < 0) {
         len = 0;
-    if (len > E.cols)
-        len = E.cols;
-    append(ab, &E.row[rowIndex].render[E.coloff], len);
+    }
+    if (len > Win.cols) {
+        len = Win.cols;
+    }
+    append(ab, &E.row[rowIndex].render[Win.coloff], len);
 }
 
-void handleScroll() {
-    Cur.rx = 0;
-    if (Cur.y < E.nrows) {
-        Cur.rx = CxToRx(&E.row[Cur.y], Cur.x);
-    }
-    if (Cur.y < E.rowoff) {
-        E.rowoff = Cur.y;
-    }
-    if (Cur.y >= E.rowoff + E.rows) {
-        E.rowoff = Cur.y - E.rows + 1;
-    }
-    if (Cur.rx < E.coloff) {
-        E.coloff = Cur.rx;
-    }
-    if (Cur.rx >= E.coloff + E.cols) {
-        E.coloff = Cur.rx - E.cols + 1;
-    }
-}
+void renderBlank(struct abuf *ab) { append(ab, "~", 1); }
+
 void renderRows(struct abuf *ab) {
-    for (int y = 0; y < E.rows; y++) {
-        int filerow = y + E.rowoff;
+    for (int y = 0; y < Win.rows; y++) {
+        int filerow = y + Win.rowoff;
         if (filerow >= E.nrows) {
             renderBlank(ab);
         } else {
@@ -624,13 +614,39 @@ void renderRows(struct abuf *ab) {
     }
 }
 
+void handleScroll() {
+    Cur.rx = 0;
+    if (Cur.y < E.nrows) {
+        Cur.rx = CxToRx(&E.row[Cur.y], Cur.x);
+    }
+    if (Cur.y < Win.rowoff) {
+        Win.rowoff = Cur.y;
+    }
+    if (Cur.y >= Win.rowoff + Win.rows) {
+        Win.rowoff = Cur.y - Win.rows + 1;
+    }
+    if (Cur.rx < Win.coloff) {
+        Win.coloff = Cur.rx;
+    }
+    if (Cur.rx >= Win.coloff + Win.cols) {
+        Win.coloff = Cur.rx - Win.cols + 1;
+    }
+}
+
 void renderMessage(struct abuf *ab) {
     append(ab, "\x1b[K", 3);
     int len = strlen(E.message);
-    if (len > E.cols) {
-        len = E.cols;
+    if (len > Win.cols) {
+        len = Win.cols;
     }
     append(ab, E.message, len);
+}
+
+void renderCursor(struct abuf *ab) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (Cur.y - Win.rowoff) + 1,
+             (Cur.rx - Win.coloff) + 1);
+    append(ab, buf, strlen(buf));
 }
 
 void refreshScreen() {
@@ -642,11 +658,7 @@ void refreshScreen() {
 
     renderRows(&ab);
     renderMessage(&ab);
-
-    char buf[32];
-    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (Cur.y - E.rowoff) + 1,
-             (Cur.rx - E.coloff) + 1);
-    append(&ab, buf, strlen(buf));
+    renderCursor(&ab);
 
     append(&ab, "\x1b[?25h", 6);
 
@@ -667,16 +679,17 @@ void setup() {
 
     E.nrows = 0;
     E.row = NULL;
-    E.rowoff = 0;
-    E.coloff = 0;
     E.filename = NULL;
+
+    Win.rowoff = 0;
+    Win.coloff = 0;
 
     Cur.x = 0;
     Cur.y = 0;
     Cur.rx = 0;
 
-    loadWinSize(&E.rows, &E.cols);
-    E.rows -= 1;
+    loadWinSize(&Win.rows, &Win.cols);
+    Win.rows -= 1;
 }
 
 int main(int argc, char *argv[]) {
