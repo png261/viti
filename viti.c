@@ -1,9 +1,11 @@
 /* includes */
 #define _DEFAULT_SOURCE
 #define _BSD_SOURCE
+
 #define _GNU_SOURCE
 
 #include <ctype.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -32,6 +34,10 @@ enum keys {
     TAB = '\t',
     BACKSPACE = 127,
     DEL_KEY = 1000,
+    ARROW_LEFT,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN,
 
     NORMAL_KEY = ESC,
     INSERT_KEY = 'i',
@@ -59,14 +65,13 @@ typedef struct erow {
 struct {
     int rows;
     int cols;
-
     int rowoff;
     int coloff;
-
 } Win;
 
 struct editor {
     int mode;
+    int premode;
 
     int nrows;
     erow *row;
@@ -82,6 +87,7 @@ char *prompt(char *mess, void (*callback)(char *, int));
 void insertKey(int c);
 void normalKey(int c);
 void visualKey(int c);
+void moveCursor(int c);
 
 /* terminal */
 void disableRawMode() { tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios); }
@@ -96,7 +102,7 @@ void enableRawMode() {
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
     raw.c_cc[VMIN] = 0;
-    raw.c_cc[VTIME] = 0.5;
+    raw.c_cc[VTIME] = 0.1;
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -105,40 +111,45 @@ int readKey() {
     int nread;
     char c;
     while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
-        if (nread == -1 && errno != EAGAIN) {
+        if (nread == -1 && errno != EAGAIN)
             die("read");
-        }
     }
 
     if (c == '\x1b') {
         char seq[3];
-        if (read(STDIN_FILENO, &seq[0], 1) != 1) {
-            return ESC;
-        }
 
-        if (read(STDIN_FILENO, &seq[1], 1) != 1) {
-            return ESC;
-        }
+        if (read(STDIN_FILENO, &seq[0], 1) != 1)
+            return '\x1b';
+        if (read(STDIN_FILENO, &seq[1], 1) != 1)
+            return '\x1b';
 
         if (seq[0] == '[') {
             if (seq[1] >= '0' && seq[1] <= '9') {
-                if (read(STDIN_FILENO, &seq[2], 1) != 1) {
-                    return ESC;
-                }
-
+                if (read(STDIN_FILENO, &seq[2], 1) != 1)
+                    return '\x1b';
                 if (seq[2] == '~') {
                     switch (seq[1]) {
                     case '3':
                         return DEL_KEY;
                     }
                 }
+            } else {
+                switch (seq[1]) {
+                case 'A':
+                    return ARROW_UP;
+                case 'B':
+                    return ARROW_DOWN;
+                case 'C':
+                    return ARROW_RIGHT;
+                case 'D':
+                    return ARROW_LEFT;
+                }
             }
         }
-
-        return ESC;
+        return '\x1b';
+    } else {
+        return c;
     }
-
-    return c;
 }
 
 int loadWinSize(int *rows, int *cols) {
@@ -339,7 +350,7 @@ void openFile(char *filename) {
     E.filename = strdup(filename);
 
     if (!fp) {
-        die("fopen");
+        return;
     }
 
     char *line = NULL;
@@ -471,26 +482,30 @@ char *prompt(char *mess, void (*callback)(char *, int)) {
     }
 }
 
-void moveCursor(char key) {
+void moveCursor(int key) {
     erow *row = (Cur.y >= E.nrows) ? NULL : &E.row[Cur.y];
 
     switch (key) {
     case KEY_LEFT:
+    case ARROW_LEFT:
         if (Cur.x != 0) {
             Cur.x--;
         }
         break;
     case KEY_RIGHT:
+    case ARROW_RIGHT:
         if (row && Cur.x < row->size) {
             Cur.x++;
         }
         break;
     case KEY_UP:
+    case ARROW_UP:
         if (Cur.y != 0) {
             Cur.y--;
         }
         break;
     case KEY_DOWN:
+    case ARROW_DOWN:
         if (Cur.y < E.nrows) {
             Cur.y++;
         }
@@ -522,11 +537,13 @@ void normalKey(int c) {
     case KEY_LEFT:
         moveCursor(c);
         break;
-    case INSERT_KEY:
-        E.mode = INSERT;
+    case ARROW_UP:
+    case ARROW_DOWN:
+    case ARROW_RIGHT:
+    case ARROW_LEFT:
+        moveCursor(c);
         break;
-    case 'a':
-        moveCursor(KEY_RIGHT);
+    case INSERT_KEY:
         E.mode = INSERT;
         break;
     case VISUAL_KEY:
@@ -538,11 +555,60 @@ void normalKey(int c) {
     case COMAND_KEY:
         handleCommand();
         break;
+    case 'x':
+        moveCursor(KEY_RIGHT);
+        delChar();
+        break;
+    case 'o':
+        moveCursor(KEY_DOWN);
+        insertRow(Cur.y, "", 0);
+        Cur.x = 0;
+        E.mode = INSERT;
+        break;
+    case 'O':
+        insertRow(Cur.y, "", 0);
+        Cur.x = 0;
+        E.mode = INSERT;
+        break;
+    case 'd':
+        if (readKey() == 'd') {
+            delRow(Cur.y);
+            Cur.x = RxToCx(&E.row[Cur.y], Cur.x);
+        }
+        break;
+    case 'a':
+        moveCursor(KEY_RIGHT);
+        E.mode = INSERT;
+        break;
+    case '0':
+        Cur.x = 0;
+        break;
+    case '$':
+        Cur.x = E.row[Cur.y].size;
+        break;
+    case CTRL_KEY('d'):
+        Cur.y += Win.cols - 1;
+        if (Cur.y > E.nrows) {
+            Cur.y = E.nrows - 1;
+        }
+        break;
+    case CTRL_KEY('u'):
+        Cur.y -= Win.cols - 1;
+        if (Cur.y < 0) {
+            Cur.y = 0;
+        }
+        break;
     }
 }
 
 void insertKey(int c) {
     switch (c) {
+    case ARROW_UP:
+    case ARROW_DOWN:
+    case ARROW_RIGHT:
+    case ARROW_LEFT:
+        moveCursor(c);
+        break;
     case NORMAL_KEY:
         E.mode = NORMAL;
         break;
@@ -563,7 +629,6 @@ void insertKey(int c) {
     default:
         insertChar(c);
     }
-    message("");
 }
 
 void handleKeyPress() {
@@ -573,10 +638,6 @@ void handleKeyPress() {
         normalKey(c);
         break;
     case INSERT:
-        insertKey(c);
-        break;
-    case 'a':
-        moveCursor(KEY_RIGHT);
         insertKey(c);
         break;
     case VISUAL:
