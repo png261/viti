@@ -1,2 +1,2 @@
-viti: viti.c
-	$(CC) *.c -lcurses -o viti -Wall -Wextra -pedantic -std=c99 
+all: main.c
+	-cc *.c -o viti -lncurses
