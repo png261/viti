@@ -7,6 +7,7 @@
 
 Cursor cur;
 Buffer buf;
+Buffer buf2;
 
 struct {
     char content[128];
@@ -30,7 +31,7 @@ enum termmode {
 
 /* prototypes */
 void quit();
-void die(char * mess);
+void die(char *mess);
 void switchMode(int mode);
 
 /* status */
@@ -40,7 +41,7 @@ void mess_send(const char *format, ...) {
     va_start(ap, format);
     vsnprintf(status.content, sizeof(status.content), format, ap);
     va_end(ap);
-    mvwprintw(status.win, 1, 0, status.content);
+    mvwprintw(status.win, 0, 0, status.content);
     wrefresh(status.win);
 }
 
@@ -74,31 +75,18 @@ void normalMode(char c) {
         cursor_left(&cur);
         break;
     case 'l':
-        cursor_right(&cur);
+        cur.x++;
+
+        wmove(buf.win, cur.y, cur.x);
+        wrefresh(buf.win);
         break;
     case 'j':
         cur.y++;
-        if (cur.y > buf.view.y) {
-            buf.view.yoff += cur.y - buf.view.y;
-            if (buf.view.yoff > buf.nlines) {
-                buf.view.yoff = buf.nlines;
-            }
-            cur.y = buf.view.y;
-        }
-        buffer_render(&buf);
         wmove(buf.win, cur.y, cur.x);
         wrefresh(buf.win);
         break;
     case 'k':
         cur.y--;
-        if (cur.y < 0) {
-            buf.view.yoff += cur.y;
-            if (buf.view.yoff < 0) {
-                buf.view.yoff = 0;
-            }
-            cur.y = 0;
-        }
-        buffer_render(&buf);
         wmove(buf.win, cur.y, cur.x);
         wrefresh(buf.win);
         break;
@@ -166,9 +154,11 @@ int getLines(char *filename) {
 
 void openFile(Buffer *buf, char *filename) {
     FILE *fp = fopen(filename, "r");
-    if(!fp){
+    if (!fp) {
         die("File not found!");
     }
+
+    buf->filename = filename;
     buf->nlines = getLines(filename);
     buf->rows = calloc(buf->nlines, sizeof(row));
 
@@ -176,14 +166,13 @@ void openFile(Buffer *buf, char *filename) {
     size_t linecap = 0;
     ssize_t linelen;
 
-    int i = 0;
+    row *current = buf->rows;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        buf->rows[i].content = malloc(linelen * sizeof(char));
-        memcpy(buf->rows[i].content, line, linelen);
-        buf->rows[i].size = linelen;
-        i++;
+        current->content = malloc(linelen * sizeof(char));
+        memcpy(current->content, line, linelen);
+        current->size = linelen;
+        current++;
     }
-
     fclose(fp);
 }
 
@@ -203,18 +192,13 @@ void init() {
     cur.x = 0;
     cur.y = 0;
 
-    buf.view.xoff = 0;
-    buf.view.yoff = 0;
-    buf.nlines = 0;
-
-    buf.view.x = term.x;
-    buf.view.y = term.y - 2;
-    buf.win = newwin(buf.view.y, buf.view.x, 0, 0);
+    int mess_height = 1;
+    buf = buffer_create(term.y - mess_height, term.x / 2, 0, 0);
+    buf2 = buffer_create(term.y - mess_height, term.x / 2, 0, term.x / 2);
     term.wcurrent = buf.win;
 
-    status.win = newwin(2, term.x, term.y - 2, 0);
+    status.win = newwin(mess_height, term.x, term.y - mess_height, 0);
     refresh();
-
 }
 
 void quit() {
@@ -222,7 +206,7 @@ void quit() {
     exit(0);
 }
 
-void die(char * mess){
+void die(char *mess) {
     endwin();
     puts(mess);
     exit(1);
@@ -233,11 +217,14 @@ int main(int argc, char *argv[]) {
     ncursesSetup();
     init();
 
-    if (argc == 2) {
+    if (argc >= 2) {
         openFile(&buf, argv[1]);
+        openFile(&buf2, argv[1]);
     }
 
     buffer_render(&buf);
+    buffer_render(&buf2);
+
     cursor_refresh(&cur);
     switchMode(NORMAL);
 
