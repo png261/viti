@@ -1,2 +1,3 @@
 all: main.c
-	-cc *.c -o viti -lncurses
+	$(CC) *.c -o viti -lncurses -lm 
+
