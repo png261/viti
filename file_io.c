@@ -1,7 +1,7 @@
 #include "file_io.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
-#include "util.h"
 
 int countLines(char *filename) {
     FILE *fp = fopen(filename, "r");
@@ -13,6 +13,14 @@ int countLines(char *filename) {
     }
     fclose(fp);
     return count;
+}
+
+size_t trim(char *str) {
+    char *size = str + strlen(str) - 1;
+    while (*size == '\n' | *size == ' ') {
+        *size = '\0';
+    }
+    return strlen(str);
 }
 
 void file_open(char *filename, Buffer *buf) {
@@ -30,7 +38,8 @@ void file_open(char *filename, Buffer *buf) {
     size_t linelen;
 
     Row *current = buf->rows;
-    while ((linelen = getline(&line, &linecap, fp)) != -1) {
+    while ((getline(&line, &linecap, fp)) != -1) {
+        linelen = trim(line);
         current->content = malloc(linelen * sizeof(char));
         memcpy(current->content, line, linelen);
         current->size = linelen;

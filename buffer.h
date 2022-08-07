@@ -23,11 +23,12 @@ typedef struct{
 
 struct buffer {
     Row *rows;
-    View view;
     Cursor cur;
     File file;
 
     WINDOW *win;
+    View view;
+
     WINDOW *statusline;
     WINDOW *numbercol;
 };

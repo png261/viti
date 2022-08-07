@@ -68,24 +68,41 @@ void handleScroll(char c) {
 
     switch (c) {
     case 'h':
-        cur->x--;
+        if (cur->x == 0) {
+            cbuf->view.xoff = MAX(cbuf->view.xoff--, 0);
+            buffer_render_rows(cbuf);
+        }
+
+        cur->x = MAX(cur->x--, 0);
         break;
     case 'l':
-        cur->x++;
+        if (cur->x == cbuf->view.x - 1) {
+            cbuf->view.xoff =
+                MIN(cbuf->view.xoff++, cbuf->rows[cur->y].size - cbuf->view.x);
+            buffer_render_rows(cbuf);
+        }
+
+        cur->x = MIN(cur->x++, cbuf->view.x - 1);
         break;
     case 'j':
-        cur->y++;
-        if (cur->y >= cbuf->view.y) {
-            cbuf->view.yoff += cur->y - cbuf->view.y;
-            cbuf->view.yoff = MIN(cbuf->view.yoff, cbuf->file.lines);
+        if (cur->y == cbuf->view.y - 1) {
+            cbuf->view.yoff =
+                MIN(cbuf->view.yoff++, cbuf->file.lines - cbuf->view.y);
             buffer_render_rows(cbuf);
-            cur->y = cbuf->view.y;
         }
+
+        cur->y = MIN(cur->y++, cbuf->view.y - 1);
         break;
     case 'k':
-        cur->y--;
+        if (cur->y == 0) {
+            cbuf->view.yoff = MAX(cbuf->view.yoff--, 0);
+            buffer_render_rows(cbuf);
+        }
+
+        cur->y = MAX(cur->y--, 0);
         break;
     }
+
     wmove(cbuf->win, cur->y, cur->x);
     buffer_render_numbercol(cbuf);
 }

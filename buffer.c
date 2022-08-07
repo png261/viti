@@ -15,13 +15,11 @@ Buffer buffer_create(int height, int width, int y, int x) {
     buf.cur.x = 0;
     buf.cur.y = 0;
 
-    buf.view.x = width - size_numbercol;
-    buf.view.y = height - size_statusline;
     buf.view.xoff = 0;
     buf.view.yoff = 0;
-
-    buf.win = newwin(height - size_statusline, width - size_numbercol, y,
-                     x + size_numbercol);
+    buf.view.x = width - size_numbercol;
+    buf.view.y = height - size_statusline;
+    buf.win = newwin(buf.view.y, buf.view.x, y, x + size_numbercol);
 
     buf.numbercol = newwin(height - size_statusline, size_numbercol, y, x);
 
@@ -30,6 +28,20 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
     refresh();
     return buf;
+}
+
+void buffer_render_rows(Buffer *buf) {
+    werase(buf -> win);
+    int lines = MIN(buf->file.lines, buf->view.y);
+
+    for (int y = 0; y < lines; y++) {
+        Row current = buf->rows[buf->view.yoff + y];
+        int cols = MIN(current.size, buf->view.x);
+        for (int x = 0; x < cols; x++) {
+            mvwaddch(buf->win, y, x, current.content[buf->view.xoff + x]);
+        }
+    }
+    wrefresh(buf->win);
 }
 
 void buffer_render_numbercol(Buffer *buf) {
@@ -41,26 +53,17 @@ void buffer_render_numbercol(Buffer *buf) {
             mvwaddstr(buf->numbercol, y, 0, "~");
             continue;
         }
-
         char *num = malloc(cols * sizeof(char));
-        sprintf(num, "%d", abs(buf->cur.y - y));
+
+        if (y == buf->cur.y) {
+            sprintf(num, "%d", y);
+        } else {
+            sprintf(num, "%d", abs(buf->cur.y - y));
+        }
         mvwaddstr(buf->numbercol, y, 1, num);
         free(num);
     }
     wrefresh(buf->numbercol);
-}
-
-void buffer_render_rows(Buffer *buf) {
-    int lines = MIN(buf->file.lines, buf->view.y);
-
-    for (int y = 0; y < lines; y++) {
-        Row current = buf->rows[buf->view.yoff + y];
-        int cols = MIN(current.size, buf->view.x);
-        for (int x = 0; x < cols; x++) {
-            mvwaddch(buf->win, y, x, current.content[buf->view.xoff + x]);
-        }
-    }
-    wrefresh(buf->win);
 }
 
 void buffer_render_statusline(Buffer *buf) {
