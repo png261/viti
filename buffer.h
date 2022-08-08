@@ -14,6 +14,9 @@ typedef struct{
     int y;
     int xoff;
     int yoff;
+
+    int line;
+    int col;
 } View;
 
 typedef struct{

@@ -8,8 +8,8 @@
 #include "cursor.h"
 #include "file_io.h"
 
-Buffer *Bufs;
-Buffer *cbuf;
+Buffer * cbuf;
+Buffer * Bufs;
 
 struct {
     char content[128];
@@ -38,8 +38,9 @@ void mess_send(const char *format, ...) {
     va_start(ap, format);
     vsnprintf(status.content, sizeof(status.content), format, ap);
     va_end(ap);
-    mvwprintw(status.win, 0, 0, status.content);
+    wprintw(status.win, status.content);
     wrefresh(status.win);
+    touchwin(cbuf -> win);
 }
 
 char *prompt(char *format) {
@@ -63,57 +64,19 @@ char *prompt(char *format) {
 }
 
 /* MODE */
-void handleScroll(char c) {
-    Cursor *cur = &cbuf->cur;
-
-    switch (c) {
-    case 'h':
-        if (cur->x == 0) {
-            cbuf->view.xoff = MAX(cbuf->view.xoff--, 0);
-            buffer_render_rows(cbuf);
-        }
-
-        cur->x = MAX(cur->x--, 0);
-        break;
-    case 'l':
-        if (cur->x == cbuf->view.x - 1) {
-            cbuf->view.xoff =
-                MIN(cbuf->view.xoff++, cbuf->rows[cur->y].size - cbuf->view.x);
-            buffer_render_rows(cbuf);
-        }
-
-        cur->x = MIN(cur->x++, cbuf->view.x - 1);
-        break;
-    case 'j':
-        if (cur->y == cbuf->view.y - 1) {
-            cbuf->view.yoff =
-                MIN(cbuf->view.yoff++, cbuf->file.lines - cbuf->view.y);
-            buffer_render_rows(cbuf);
-        }
-
-        cur->y = MIN(cur->y++, cbuf->view.y - 1);
-        break;
-    case 'k':
-        if (cur->y == 0) {
-            cbuf->view.yoff = MAX(cbuf->view.yoff--, 0);
-            buffer_render_rows(cbuf);
-        }
-
-        cur->y = MAX(cur->y--, 0);
-        break;
-    }
-
-    wmove(cbuf->win, cur->y, cur->x);
-    buffer_render_numbercol(cbuf);
-}
-
 void normalMode(char c) {
     switch (c) {
     case 'h':
+        cursor_left(cbuf);
+        break;
     case 'l':
+        cursor_right(cbuf);
+        break;
     case 'j':
+        cursor_down(cbuf);
+        break;
     case 'k':
-        handleScroll(c);
+        cursor_up(cbuf);
         break;
     case 'i':
         switchMode(INSERT);
@@ -122,6 +85,30 @@ void normalMode(char c) {
         switchMode(COMMAND);
         break;
     }
+    mess_send(cbuf->rows[cbuf->view.line].content);
+}
+
+void append(char c) {
+    int at = cbuf->view.col;
+    Row *row = &cbuf->rows[cbuf->view.line];
+    row->content = realloc(row->content, row->size + 2);
+    memmove(&row->content[at + 1], &row->content[at], row->size - at + 1);
+    row->content[at] = c;
+    row->size++;
+    buffer_render_rows(cbuf);
+    cursor_right(cbuf);
+}
+void insertNewline() {
+    int at = cbuf->view.line;
+    cbuf->rows = realloc(cbuf->rows, (cbuf->file.lines + 1) * sizeof(Row));
+    memmove(&cbuf->rows[at + 1], &cbuf->rows[at],
+            (cbuf->file.lines - at) * sizeof(Row));
+
+    cbuf->rows[at].content[0] = '\0';
+    cbuf->file.lines++;
+
+    buffer_render_rows(cbuf);
+    cursor_refresh(cbuf);
 }
 
 void insertMode(char c) {
@@ -129,13 +116,24 @@ void insertMode(char c) {
     case '\x1b':
         switchMode(NORMAL);
         break;
+    /* case '\n': */
+    /*     insertNewline(); */
+    default:
+        append(c);
+        break;
     }
 }
 
 void commandMode() {
     char *query = prompt(":%s");
-    if (*query == 'q') {
+    switch (*query) {
+    case 'q':
         quit();
+        break;
+    case 'w':
+        file_save(cbuf);
+        mess_send("saved");
+        break;
     }
     switchMode(NORMAL);
 }

@@ -4,6 +4,7 @@
 
 typedef struct buffer Buffer;
 
-void file_open( char *filename,Buffer *buf);
+void file_open(char *filename,Buffer *buf);
+void file_save(Buffer *buf);
 
 #endif

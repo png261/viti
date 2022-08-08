@@ -10,6 +10,10 @@ typedef struct {
 } Cursor;
 
 void cursor_refresh(Buffer * buf);
+void cursor_left(Buffer * buf);
+void cursor_right(Buffer * buf);
+void cursor_up(Buffer * buf);
+void cursor_down(Buffer * buf);
 
 #endif
 

@@ -23,6 +23,21 @@ size_t trim(char *str) {
     return strlen(str);
 }
 
+void file_save(Buffer *buf) {
+    FILE *fp = fopen(buf->file.name, "w+");
+    if (!fp) {
+        die("File not found!");
+    }
+
+    for (int y = 0; y < buf->file.lines; y++) {
+        Row *row = &buf->rows[y];
+        fputs(row->content, fp);
+        fputs("\n", fp);
+    }
+
+    fclose(fp);
+}
+
 void file_open(char *filename, Buffer *buf) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {

@@ -17,6 +17,7 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
     buf.view.xoff = 0;
     buf.view.yoff = 0;
+    buf.view.line = 0;
     buf.view.x = width - size_numbercol;
     buf.view.y = height - size_statusline;
     buf.win = newwin(buf.view.y, buf.view.x, y, x + size_numbercol);
@@ -25,13 +26,12 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
     buf.statusline =
         newwin(size_statusline, width, height - size_statusline, x);
-
     refresh();
     return buf;
 }
 
 void buffer_render_rows(Buffer *buf) {
-    werase(buf -> win);
+    werase(buf->win);
     int lines = MIN(buf->file.lines, buf->view.y);
 
     for (int y = 0; y < lines; y++) {
@@ -56,7 +56,7 @@ void buffer_render_numbercol(Buffer *buf) {
         char *num = malloc(cols * sizeof(char));
 
         if (y == buf->cur.y) {
-            sprintf(num, "%d", y);
+            sprintf(num, "%d", y + buf->view.yoff);
         } else {
             sprintf(num, "%d", abs(buf->cur.y - y));
         }
@@ -67,11 +67,12 @@ void buffer_render_numbercol(Buffer *buf) {
 }
 
 void buffer_render_statusline(Buffer *buf) {
+    werase(buf->statusline);
     init_pair(1, COLOR_WHITE, COLOR_MAGENTA);
     wbkgd(buf->statusline, COLOR_PAIR(1));
     waddstr(buf->statusline, buf->file.name);
     char lineinfo[20];
-    sprintf(lineinfo, "%d", buf->file.lines);
+    sprintf(lineinfo, "%d/%d", buf->view.line + 1, buf->file.lines);
     mvwaddstr(buf->statusline, 0, COLS - strlen(lineinfo), lineinfo);
     wrefresh(buf->statusline);
 }
