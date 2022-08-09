@@ -6,10 +6,11 @@
 
 #include "buffer.h"
 #include "cursor.h"
+#include "edit.h"
 #include "file_io.h"
 
-Buffer * cbuf;
-Buffer * Bufs;
+Buffer *cbuf;
+Buffer *Bufs;
 
 struct {
     char content[128];
@@ -32,6 +33,7 @@ enum termmode {
 void switchMode(int mode);
 
 /* status */
+
 void mess_send(const char *format, ...) {
     wclear(status.win);
     va_list ap;
@@ -40,7 +42,7 @@ void mess_send(const char *format, ...) {
     va_end(ap);
     wprintw(status.win, status.content);
     wrefresh(status.win);
-    touchwin(cbuf -> win);
+    touchwin(cbuf->win);
 }
 
 char *prompt(char *format) {
@@ -64,7 +66,7 @@ char *prompt(char *format) {
 }
 
 /* MODE */
-void normalMode(char c) {
+void normalMode(int c) {
     switch (c) {
     case 'h':
         cursor_left(cbuf);
@@ -85,41 +87,21 @@ void normalMode(char c) {
         switchMode(COMMAND);
         break;
     }
-    mess_send(cbuf->rows[cbuf->view.line].content);
 }
 
-void append(char c) {
-    int at = cbuf->view.col;
-    Row *row = &cbuf->rows[cbuf->view.line];
-    row->content = realloc(row->content, row->size + 2);
-    memmove(&row->content[at + 1], &row->content[at], row->size - at + 1);
-    row->content[at] = c;
-    row->size++;
-    buffer_render_rows(cbuf);
-    cursor_right(cbuf);
-}
-void insertNewline() {
-    int at = cbuf->view.line;
-    cbuf->rows = realloc(cbuf->rows, (cbuf->file.lines + 1) * sizeof(Row));
-    memmove(&cbuf->rows[at + 1], &cbuf->rows[at],
-            (cbuf->file.lines - at) * sizeof(Row));
-
-    cbuf->rows[at].content[0] = '\0';
-    cbuf->file.lines++;
-
-    buffer_render_rows(cbuf);
-    cursor_refresh(cbuf);
-}
-
-void insertMode(char c) {
+void insertMode(int c) {
     switch (c) {
     case '\x1b':
         switchMode(NORMAL);
         break;
-    /* case '\n': */
-    /*     insertNewline(); */
+    case '\n':
+        add_line(cbuf, cbuf->view.line);
+        break;
+    case KEY_BACKSPACE:
+        del_char(cbuf, cbuf->view.line, cbuf->view.col - 1);
+        break;
     default:
-        append(c);
+        append_char(cbuf, cbuf->view.line, cbuf->view.col, c);
         break;
     }
 }
@@ -138,9 +120,9 @@ void commandMode() {
     switchMode(NORMAL);
 }
 
-void loopKey(int mode, void (*callback)(char)) {
+void loopKey(int mode, void (*callback)(int)) {
     while (1) {
-        char c = wgetch(cbuf->win);
+        int c = wgetch(cbuf->win);
         callback(c);
         if (term.mode != mode)
             break;

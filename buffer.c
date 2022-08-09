@@ -21,6 +21,7 @@ Buffer buffer_create(int height, int width, int y, int x) {
     buf.view.x = width - size_numbercol;
     buf.view.y = height - size_statusline;
     buf.win = newwin(buf.view.y, buf.view.x, y, x + size_numbercol);
+    keypad(buf.win, TRUE);
 
     buf.numbercol = newwin(height - size_statusline, size_numbercol, y, x);
 
