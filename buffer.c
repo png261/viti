@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef MESS_H_INIT
+#define MESS_H_INIT
+Buffer *cbuf;
+Buffer *Bufs;
+#endif
+
 Buffer buffer_create(int height, int width, int y, int x) {
     Buffer buf;
     buf.file.lines = 0;

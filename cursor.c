@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include "cursor.h"
 #include "util.h"
+#include "mess.h"
 
 void cursor_refresh(Buffer *buf) {
     View *view = &buf->view;

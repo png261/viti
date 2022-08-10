@@ -1,4 +1,3 @@
-#include "util.h"
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,14 +7,12 @@
 #include "cursor.h"
 #include "edit.h"
 #include "file_io.h"
+#include "mess.h"
+#include "util.h"
 
-Buffer *cbuf;
-Buffer *Bufs;
-
-struct {
-    char content[128];
-    WINDOW *win;
-} status;
+extern struct Status status;
+extern Buffer *cbuf;
+extern Buffer *Bufs;
 
 struct {
     int mode;
@@ -31,39 +28,6 @@ enum termmode {
 
 /* prototypes */
 void switchMode(int mode);
-
-/* status */
-
-void mess_send(const char *format, ...) {
-    wclear(status.win);
-    va_list ap;
-    va_start(ap, format);
-    vsnprintf(status.content, sizeof(status.content), format, ap);
-    va_end(ap);
-    wprintw(status.win, status.content);
-    wrefresh(status.win);
-    touchwin(cbuf->win);
-}
-
-char *prompt(char *format) {
-    char *str = malloc(128 * sizeof(char));
-    size_t strlen = 0;
-    str[strlen] = '\0';
-
-    while (1) {
-        mess_send(format, str);
-        char c = getch();
-        if (c == '\n') {
-            mess_send("");
-            break;
-        }
-
-        str[strlen++] = c;
-        str[strlen] = '\0';
-    }
-
-    return str;
-}
 
 /* MODE */
 void normalMode(int c) {
@@ -95,13 +59,13 @@ void insertMode(int c) {
         switchMode(NORMAL);
         break;
     case '\n':
-        add_line(cbuf, cbuf->view.line);
+        add_line(cbuf->view.line);
         break;
     case KEY_BACKSPACE:
-        del_char(cbuf, cbuf->view.line, cbuf->view.col - 1);
+        del_char(cbuf->view.line, cbuf->view.col - 1);
         break;
     default:
-        append_char(cbuf, cbuf->view.line, cbuf->view.col, c);
+        append_char(cbuf->view.line, cbuf->view.col, c);
         break;
     }
 }

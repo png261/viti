@@ -2,13 +2,11 @@
 #define EDIT_H
 #include "buffer.h"
 
-typedef struct buffer Buffer;
+void append_char(int line, int col, char c);
+void append_str(int line, char *str);
+void del_char(int line, int col);
 
-void append_char(Buffer *buf, int line, int col, char c);
-void append_str(Buffer *buf, int line, char *str);
-void del_char(Buffer *buf, int line, int col);
-
-void add_line(Buffer *buf, int line);
-void del_line(Buffer *buf, int line);
-
+void join_line(int line);
+void add_line(int line);
+void del_line(int line);
 #endif
