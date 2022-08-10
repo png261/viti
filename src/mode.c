@@ -1,5 +1,5 @@
-#include "mode.h"
 #include "buffer.h"
+#include "mode.h"
 #include "normal.h"
 #include "insert.h"
 #include "command.h"

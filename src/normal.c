@@ -1,15 +1,15 @@
-#include "normal.h"
 #include "buffer.h"
-#include "mode.h"
-#include "file_io.h"
 #include "edit.h"
+#include "file_io.h"
 #include "mess.h"
+#include "mode.h"
+#include "normal.h"
 
-extern Buffer * cbuf;
+extern Buffer *cbuf;
 
 void normalMode(int c) {
     switch (c) {
-    case 'h': 
+    case 'h':
         cursor_left(cbuf);
         break;
     case 'l':
@@ -22,14 +22,14 @@ void normalMode(int c) {
         cursor_up(cbuf);
         break;
     case 'D':
-        del_end(cbuf -> view.line, cbuf -> view.col);
+        del_end(cbuf->view.line, cbuf->view.col);
         break;
     case 'C':
-        del_end(cbuf -> view.line, cbuf -> view.col);
+        del_end(cbuf->view.line, cbuf->view.col);
         mode_switch(INSERT);
         break;
     case 'S':
-        del_str(cbuf -> view.line, 0, cbuf -> rows[cbuf -> view.line].size);
+        del_str(cbuf->view.line, 0, cbuf->rows[cbuf->view.line].size);
         mode_switch(INSERT);
         break;
     case 'i':
@@ -39,6 +39,5 @@ void normalMode(int c) {
         mode_switch(COMMAND);
         break;
     }
-    mess_send(cbuf -> rows[cbuf -> view.line].content);
+    mess_send(cbuf->rows[cbuf->view.line].content);
 }
-
