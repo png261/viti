@@ -42,7 +42,6 @@ void buffer_render(Buffer * buf);
 void buffer_render_numbercol(Buffer * buf); 
 void buffer_render_rows(Buffer * buf); 
 void buffer_render_statusline(Buffer * buf); 
-
 void buffer_scroll(Buffer *buf, int y, int x);
     
 #endif

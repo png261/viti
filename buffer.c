@@ -75,12 +75,16 @@ void buffer_render_numbercol(Buffer *buf) {
 
 void buffer_render_statusline(Buffer *buf) {
     werase(buf->statusline);
+
     init_pair(1, COLOR_WHITE, COLOR_MAGENTA);
     wbkgd(buf->statusline, COLOR_PAIR(1));
+
     waddstr(buf->statusline, buf->file.name);
+
     char lineinfo[20];
     sprintf(lineinfo, "%d/%d", buf->view.line + 1, buf->file.lines);
     mvwaddstr(buf->statusline, 0, COLS - strlen(lineinfo), lineinfo);
+
     wrefresh(buf->statusline);
 }
 

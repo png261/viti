@@ -24,6 +24,9 @@ void append_str(int line, char *str) {
 }
 
 void join_line(int line) {
+    if (line == 0) {
+        return;
+    }
     Row *row = &cbuf->rows[line];
     cbuf->cur.x = (row - 1)->size;
     cbuf->cur.y--;
@@ -35,28 +38,48 @@ void join_line(int line) {
 
 void del_char(int line, int col) {
     Row *row = &cbuf->rows[line];
-    if (col < 0 || col > row->size) {
+    if (col >= row->size) {
+        return;
+    }
+
+    if (col + 1 == 0) {
         join_line(line);
         return;
     }
+
     memmove(&row->content[col], &row->content[col + 1], row->size - col);
     row->size--;
     buffer_render_rows(cbuf);
     cursor_left(cbuf);
 }
 
-void add_line(int line) {
+void del_str(int line, int start, int end) {
+    Row *row = &cbuf->rows[line];
+    int len = end - start;
+    memmove(&row->content[start], &row->content[end + 1], row->size - len + 1);
+    row->size -= len;
+    buffer_render_rows(cbuf);
+    cursor_refresh(cbuf);
+}
+
+void del_end(int line, int col){
+    del_str(line, col, cbuf ->rows[cbuf -> view.line].size);
+}
+
+void add_line(int line, char *str) {
     cbuf->rows = realloc(cbuf->rows, (cbuf->file.lines + 1) * sizeof(Row));
     memmove(&cbuf->rows[line + 1], &cbuf->rows[line],
             (cbuf->file.lines - line) * sizeof(Row));
-    cbuf->rows[line].size = 0;
-    cbuf->rows[line].content = malloc(sizeof(char));
+    int len = strlen(str);
+    cbuf->rows[line].size = len;
+    cbuf->rows[line].content = malloc(sizeof(str));
+    memcpy(cbuf->rows[line].content, str, len);
     cbuf->file.lines++;
     buffer_render_rows(cbuf);
     cursor_refresh(cbuf);
 }
 
-void del_line( int line) {
+void del_line(int line) {
     if (line < 0 || line >= cbuf->file.lines - 1) {
         return;
     }

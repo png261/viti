@@ -17,7 +17,7 @@ int countLines(char *filename) {
 
 size_t trim(char *str) {
     char *size = str + strlen(str) - 1;
-    while (*size == '\n' | *size == ' ') {
+    while (*size == '\n' || *size == ' ') {
         *size = '\0';
     }
     return strlen(str);
