@@ -13,7 +13,7 @@ Buffer *Bufs;
 Buffer buffer_create(int height, int width, int y, int x) {
     Buffer buf;
     buf.file.lines = 0;
-    buf.file.name = "[NONAME]";
+    buf.file.name = NULL;
 
     int size_statusline = 1;
     int size_numbercol = 4;

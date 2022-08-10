@@ -1,7 +1,6 @@
 #ifndef CURSOR_H
 #define CURSOR_H
 
-#include "buffer.h"
 typedef struct buffer Buffer;
 
 typedef struct {
