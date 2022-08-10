@@ -3,6 +3,7 @@
 #include "normal.h"
 #include "insert.h"
 #include "command.h"
+#include "mess.h"
 #include <ncurses.h>
 
 extern Buffer * cbuf; 
@@ -13,6 +14,7 @@ void loopKey(int mode, void (*callback)(int)) {
     while (1) {
         int c = wgetch(cbuf->win);
         callback(c);
+        mess_send(cbuf -> rows[cbuf -> view.line].content);
         if (cmode != mode)
             break;
     }

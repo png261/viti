@@ -1,5 +1,6 @@
 #include "file_io.h"
 #include "util.h"
+#include "mess.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,27 +25,33 @@ size_t trim(char *str) {
 }
 
 void file_save(Buffer *buf) {
-    FILE *fp = fopen(buf->file.name, "w+");
-    if (!fp) {
-        die("File not found!");
+    if (buf->file.name == NULL) {
+        mess_send("No file name");
+        return;
     }
+    FILE *fp = fopen(buf->file.name, "w+");
 
     for (int y = 0; y < buf->file.lines; y++) {
         Row *row = &buf->rows[y];
         fputs(row->content, fp);
-        fputs("\n", fp);
+        if (y != buf->file.lines - 1) {
+            fputs("\n", fp);
+        }
     }
+
+    mess_send("\"%s\" %dL written", buf->file.name, buf->file.lines);
 
     fclose(fp);
 }
 
 void file_open(char *filename, Buffer *buf) {
     FILE *fp = fopen(filename, "r");
+    buf->file.name = filename;
+
     if (!fp) {
-        die("File not found!");
+        return;
     }
 
-    buf->file.name = filename;
     buf->file.lines = countLines(filename);
     buf->rows = calloc(buf->file.lines, sizeof(Row));
 

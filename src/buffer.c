@@ -1,18 +1,16 @@
 #include "buffer.h"
+#include "mess.h"
 #include "util.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef MESS_H_INIT
-#define MESS_H_INIT
 Buffer *cbuf;
 Buffer *Bufs;
-#endif
 
 Buffer buffer_create(int height, int width, int y, int x) {
     Buffer buf;
-    buf.file.lines = 0;
+    buf.file.lines = 1;
     buf.file.name = NULL;
 
     int size_statusline = 1;
@@ -20,6 +18,8 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
     buf.cur.x = 0;
     buf.cur.y = 0;
+    buf.rows = malloc(sizeof(Row));
+    buf.rows[0].content = malloc(sizeof(char));
 
     buf.view.xoff = 0;
     buf.view.yoff = 0;
@@ -39,9 +39,7 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
 void buffer_render_rows(Buffer *buf) {
     werase(buf->win);
-    int lines = MIN(buf->file.lines, buf->view.y);
-
-    for (int y = 0; y < lines; y++) {
+    for (int y = 0; y < MIN(buf->file.lines, buf->view.y); y++) {
         Row current = buf->rows[buf->view.yoff + y];
         int cols = MIN(current.size, buf->view.x);
         for (int x = 0; x < cols; x++) {
@@ -53,22 +51,20 @@ void buffer_render_rows(Buffer *buf) {
 
 void buffer_render_numbercol(Buffer *buf) {
     werase(buf->numbercol);
-    int cols = log10(buf->file.lines) + 1;
 
     for (int y = 0; y < buf->view.y; y++) {
-        if (y + buf->view.yoff > buf->file.lines) {
+        if (y + buf->view.yoff >= buf->file.lines) {
             mvwaddstr(buf->numbercol, y, 0, "~");
             continue;
         }
-        char *num = malloc(cols * sizeof(char));
 
+        char num[4];
         if (y == buf->cur.y) {
             sprintf(num, "%d", y + buf->view.yoff);
         } else {
             sprintf(num, "%d", abs(buf->cur.y - y));
         }
         mvwaddstr(buf->numbercol, y, 1, num);
-        free(num);
     }
     wrefresh(buf->numbercol);
 }
@@ -82,7 +78,7 @@ void buffer_render_statusline(Buffer *buf) {
     waddstr(buf->statusline, buf->file.name);
 
     char lineinfo[20];
-    sprintf(lineinfo, "%d/%d", buf->view.line + 1, buf->file.lines);
+    sprintf(lineinfo, "%d/%d", buf->view.line, buf->file.lines);
     mvwaddstr(buf->statusline, 0, COLS - strlen(lineinfo), lineinfo);
 
     wrefresh(buf->statusline);

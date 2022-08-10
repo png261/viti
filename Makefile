@@ -57,7 +57,8 @@ STACK := -fstack-protector-all -Wstack-protector
 # Specifies to GCC the required warnings
 WARNS := -Wall -Wextra -pedantic # -pedantic warns on language standards
 
-# Flags for compiling CFLAGS := -O3 $(STD) $(STACK) $(WARNS)
+# Flags for compiling 
+CFLAGS := -O3 $(STD) $(STACK) $(WARNS)
 
 # Debug options
 DEBUG := -g3 -DDEBUG=1

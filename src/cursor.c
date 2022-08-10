@@ -1,7 +1,7 @@
 #include "buffer.h"
 #include "cursor.h"
-#include "util.h"
 #include "mess.h"
+#include "util.h"
 
 void cursor_refresh(Buffer *buf) {
     View *view = &buf->view;
@@ -15,9 +15,9 @@ void cursor_refresh(Buffer *buf) {
 
 void cursor_check(Buffer *buf) {
     Row *row = &buf->rows[buf->view.line];
-    buf->cur.x = RANGE(buf->cur.x, 0,
-                       (row->size < buf->view.x ? row->size : buf->view.x - 1));
-    buf->cur.y = RANGE(buf->cur.y, 0, MIN(buf->file.lines, buf->view.y - 1));
+    int maxX = MIN(row->size - 1 < 0 ? 0 : row->size - 1, buf->view.x - 1);
+    buf->cur.x = RANGE(buf->cur.x, 0, maxX);
+    buf->cur.y = RANGE(buf->cur.y, 0, MIN(buf->file.lines, buf->view.y) - 1);
 }
 
 void handleScroll(Buffer *buf) {

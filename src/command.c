@@ -15,7 +15,6 @@ void commandMode() {
         break;
     case 'w':
         file_save(cbuf);
-        mess_send("saved");
         break;
     }
     mode_switch(NORMAL);
