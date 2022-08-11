@@ -14,9 +14,6 @@ typedef struct{
     int y;
     int xoff;
     int yoff;
-
-    int line;
-    int col;
 } View;
 
 typedef struct{
@@ -35,7 +32,11 @@ struct buffer {
     WINDOW *statusline;
     WINDOW *numbercol;
 };
+
+#ifndef TYPEDEF_BUFFER
+#define TYPEDEF_BUFFER
 typedef struct buffer Buffer;
+#endif 
 
 Buffer buffer_create(int height, int width, int y, int x);
 void buffer_render(Buffer * buf); 
@@ -44,4 +45,7 @@ void buffer_render_rows(Buffer * buf);
 void buffer_render_statusline(Buffer * buf); 
 void buffer_scroll(Buffer *buf, int y, int x);
     
+Row *current_row(Buffer *buf);
+int current_line(Buffer *buf);
+int current_col(Buffer *buf);
 #endif

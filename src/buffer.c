@@ -2,11 +2,16 @@
 #include "mess.h"
 #include "util.h"
 #include <math.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 
 Buffer *cbuf;
 Buffer *Bufs;
+
+Row *current_row(Buffer *buf) { return &buf->rows[current_line(buf)]; }
+int current_line(Buffer *buf) { return buf->cur.y + buf->view.yoff; }
+int current_col(Buffer *buf) { return buf->cur.x + buf->view.xoff; }
 
 Buffer buffer_create(int height, int width, int y, int x) {
     Buffer buf;
@@ -23,7 +28,6 @@ Buffer buffer_create(int height, int width, int y, int x) {
 
     buf.view.xoff = 0;
     buf.view.yoff = 0;
-    buf.view.line = 0;
     buf.view.x = width - size_numbercol;
     buf.view.y = height - size_statusline;
     buf.win = newwin(buf.view.y, buf.view.x, y, x + size_numbercol);
@@ -40,10 +44,10 @@ Buffer buffer_create(int height, int width, int y, int x) {
 void buffer_render_rows(Buffer *buf) {
     werase(buf->win);
     for (int y = 0; y < MIN(buf->file.lines, buf->view.y); y++) {
-        Row current = buf->rows[buf->view.yoff + y];
-        int cols = MIN(current.size, buf->view.x);
+        Row *row = &buf->rows[buf->view.yoff + y];
+        int cols = MIN(row->size, buf->view.x);
         for (int x = 0; x < cols; x++) {
-            mvwaddch(buf->win, y, x, current.content[buf->view.xoff + x]);
+            mvwaddch(buf->win, y, x, row->content[buf->view.xoff + x]);
         }
     }
     wrefresh(buf->win);
@@ -58,7 +62,7 @@ void buffer_render_numbercol(Buffer *buf) {
             continue;
         }
 
-        char num[4];
+        char num[20];
         if (y == buf->cur.y) {
             sprintf(num, "%d", y + buf->view.yoff);
         } else {
@@ -71,15 +75,19 @@ void buffer_render_numbercol(Buffer *buf) {
 
 void buffer_render_statusline(Buffer *buf) {
     werase(buf->statusline);
+    wbkgd(buf->statusline, A_REVERSE);
+    waddstr(buf->statusline,
+            buf->file.name != NULL ? buf->file.name : "[NONAME]");
 
-    init_pair(1, COLOR_WHITE, COLOR_MAGENTA);
-    wbkgd(buf->statusline, COLOR_PAIR(1));
+    char lineinfo[128];
+    char percentInfo[128];
+    sprintf(percentInfo, "%.f%%",
+            (float)current_line(cbuf) / buf->file.lines * 100);
+    sprintf(lineinfo, "%d,%d", current_line(buf), buf->file.lines);
 
-    waddstr(buf->statusline, buf->file.name);
-
-    char lineinfo[20];
-    sprintf(lineinfo, "%d/%d", buf->view.line, buf->file.lines);
-    mvwaddstr(buf->statusline, 0, COLS - strlen(lineinfo), lineinfo);
+    mvwaddstr(buf->statusline, 0,
+              COLS - strlen(lineinfo) - 5 - strlen(percentInfo), lineinfo);
+    mvwaddstr(buf->statusline, 0, COLS - strlen(percentInfo), percentInfo);
 
     wrefresh(buf->statusline);
 }

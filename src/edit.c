@@ -51,7 +51,10 @@ char *del_str(int line, int start, int end) {
     Row *row = &cbuf->rows[line];
     int len = end - start + 1;
     char *deleted_str = get_substring(row->content, start, len);
-    memmove(&row->content[start], &row->content[end], row->size - len);
+
+    if (start < end) {
+        memmove(&row->content[start], &row->content[end], row->size - len);
+    }
 
     row->size -= len;
     buffer_render_rows(cbuf);

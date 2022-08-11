@@ -1,5 +1,6 @@
-#include "mess.h"
 #include "buffer.h"
+#include "mess.h"
+#include "util.h"
 #include <ncurses.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -29,10 +30,19 @@ char *prompt(char *format) {
     str[strlen] = '\0';
     while (1) {
         mess_send(format, str);
-        char c = getch();
+        int c = getch();
         if (c == '\n') {
             mess_send("");
+            return str;
             break;
+        }
+        if (c == '\x1b') {
+            mess_send("");
+            break;
+        }
+        if (c == CTRL('h') || c == KEY_BACKSPACE) {
+            str[--strlen] = '\0';
+            continue;
         }
         str[strlen++] = c;
         str[strlen] = '\0';

@@ -29,22 +29,22 @@ void insertMode(int c) {
         mode_switch(NORMAL);
         break;
     case '\n':
-        if (cbuf->view.col == 0) {
-            add_line(cbuf->view.line, "");
+        if (current_col(cbuf) == 0) {
+            add_line(current_line(cbuf), "");
         } else {
-            break_line(cbuf->view.line, cbuf->view.col);
-            cbuf->cur.x = 0;
-            cbuf->cur.y++;
+            break_line(current_line(cbuf), current_col(cbuf));
+            cbuf -> cur.x = 0;
+            cbuf -> cur.y++;
             cursor_refresh(cbuf);
         }
         break;
     case CTRL('h'):
     case KEY_BACKSPACE:
-        del_char(cbuf->view.line, cbuf->view.col - 1);
+        del_char(current_line(cbuf), current_col(cbuf) - 1);
         cursor_left(cbuf);
         break;
     default:
-        append_char(cbuf->view.line, cbuf->view.col, c);
+        append_char(current_line(cbuf), current_col(cbuf), c);
         break;
     }
 }
