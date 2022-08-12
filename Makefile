@@ -91,9 +91,18 @@ $(LIBDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 
 # Run
 FILES = $(filter-out $@,$(MAKECMDGOALS))
-run: 
+run:
 	$(BINDIR)/$(BINARY) $(FILES)
 
 # Clean
 clean:
 	@rm -rvf $(BINDIR)/* $(LIBDIR)/* $(LOGDIR)/*;
+
+help:
+	@echo "VITI TEXTEDITOR"
+	@echo
+	@echo "Target rules:"
+	@echo "    all      - Compiles and generates binary file"
+	@echo "    run      - run binary file"
+	@echo "    clean    - Clean the project by removing binaries"
+	@echo "    help     - Prints a help message with target rules"
