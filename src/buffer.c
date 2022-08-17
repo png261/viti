@@ -1,4 +1,5 @@
 #include "buffer.h"
+
 #include <stdlib.h>
 
 Buffer *cbuf;

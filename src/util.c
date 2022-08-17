@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <ncurses.h>
 #include <stdlib.h>
 

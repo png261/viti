@@ -1,6 +1,5 @@
 #ifndef BUFFER_H
 #define BUFFER_H
-#include "cursor.h"
 #include "window.h"
 
 typedef struct{

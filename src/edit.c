@@ -1,4 +1,5 @@
 #include "edit.h"
+
 #include "mess.h"
 #include "window.h"
 #include <stdlib.h>
@@ -23,7 +24,7 @@ void append_char(int line, int col, char c) {
 
 void del_char(int line, int col) {
     Row *row = &cwin->buf->rows[line];
-    if (col == 0) {
+    if (col < 0) {
         join_line(line);
         return;
     }

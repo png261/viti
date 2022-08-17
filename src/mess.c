@@ -1,32 +1,29 @@
-#include "buffer.h"
 #include "mess.h"
+
 #include "util.h"
 #include "window.h"
 #include <ncurses.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-#ifndef MESS_H_INIT
-#define MESS_H_INIT
-struct Status status;
-#endif
+Message mess;
 
 extern Win *cwin;
 
 void mess_send(const char *format, ...) {
-    wclear(status.win);
+    wclear(mess.win);
     va_list ap;
     va_start(ap, format);
-    vsnprintf(status.content, sizeof(status.content), format, ap);
+    vsnprintf(mess.content, sizeof(mess.content), format, ap);
     va_end(ap);
-    waddstr(status.win, status.content);
-    wrefresh(status.win);
+    waddstr(mess.win, mess.content);
+    wrefresh(mess.win);
     touchwin(cwin->textarea);
 }
 
-char *prompt(char *format) {
-    char *str = malloc(128 * sizeof(char));
+char *prompt(char *format, void (*callback)(char *, int)) {
+    size_t size = 128;
+    char *str = malloc(size);
     size_t strlen = 0;
     str[strlen] = '\0';
     while (1) {
@@ -34,19 +31,36 @@ char *prompt(char *format) {
         int c = getch();
         if (c == '\n') {
             mess_send("");
+            if (callback) {
+                callback(str, c);
+            }
             return str;
             break;
         }
         if (c == '\x1b') {
             mess_send("");
+            if (callback) {
+                callback(str, c);
+            }
+            free(str);
             break;
         }
+
         if (c == CTRL('h') || c == KEY_BACKSPACE) {
             str[--strlen] = '\0';
-            continue;
+        } else {
+            if (strlen == size - 1) {
+                size *= 2;
+                str = realloc(str, size);
+            }
+
+            str[strlen++] = c;
+            str[strlen] = '\0';
         }
-        str[strlen++] = c;
-        str[strlen] = '\0';
+
+        if (callback) {
+            callback(str, c);
+        }
     }
     return NULL;
 }

@@ -1,7 +1,8 @@
+#include "insert.h"
+
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
-#include "insert.h"
 #include "mode.h"
 #include "util.h"
 #include "window.h"

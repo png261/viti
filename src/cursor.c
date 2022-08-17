@@ -1,5 +1,6 @@
-#include "buffer.h"
 #include "cursor.h"
+
+#include "buffer.h"
 #include "mess.h"
 #include "util.h"
 #include "window.h"

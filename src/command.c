@@ -1,4 +1,5 @@
 #include "command.h"
+
 #include "file_io.h"
 #include "mess.h"
 #include "mode.h"
@@ -8,7 +9,7 @@
 extern Win *cwin;
 
 void commandMode() {
-    char *query = prompt(":%s");
+    char *query = prompt(":%s", NULL);
     if (query == NULL) {
         mode_switch(NORMAL);
         return;
@@ -25,5 +26,6 @@ void commandMode() {
         cwin->buf->file.name = filename;
         file_save(cwin->buf);
     }
+
     mode_switch(NORMAL);
 }

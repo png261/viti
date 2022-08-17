@@ -1,9 +1,11 @@
+#include "mode.h"
+
 #include "buffer.h"
 #include "command.h"
 #include "insert.h"
 #include "mess.h"
-#include "mode.h"
 #include "normal.h"
+#include "search.h"
 #include "util.h"
 #include <ncurses.h>
 
@@ -31,6 +33,9 @@ void mode_switch(int mode) {
         break;
     case COMMAND:
         commandMode();
+        break;
+    case SEARCH:
+        searchMode();
         break;
     }
 }

@@ -37,7 +37,7 @@ struct window{
 typedef struct window Win;
 #endif 
 
-Win *win_create(int height, int width, int y, int x);
+Win *win_create(Buffer * buf,int height, int width, int y, int x);
 void win_render(Win * win); 
 void win_render_numbercol(Win * win); 
 void win_render_rows(Win * win); 

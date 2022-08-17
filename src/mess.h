@@ -2,12 +2,12 @@
 #define MESS_H
 #include <ncurses.h>
 
-struct Status{
+typedef struct message{
     char content[128];
     WINDOW *win;
-};
+} Message;
 
 void mess_send(const char *format, ...);
-char *prompt(char *format);
+char *prompt(char *format, void (*callback)(char *, int));
 
 #endif

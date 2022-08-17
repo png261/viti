@@ -90,5 +90,8 @@ void normalMode(int c) {
     case ':':
         mode_switch(COMMAND);
         break;
+    case '/':
+        mode_switch(SEARCH);
+        break;
     }
 }
