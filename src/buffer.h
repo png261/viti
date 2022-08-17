@@ -1,36 +1,21 @@
 #ifndef BUFFER_H
 #define BUFFER_H
-
-#include <ncurses.h>
 #include "cursor.h"
-
-typedef struct {
-    char *content;
-    int size;
-} Row;
-
-typedef struct{
-    int x;
-    int y;
-    int xoff;
-    int yoff;
-} View;
+#include "window.h"
 
 typedef struct{
     char * name;
     int lines;
 } File;
 
+typedef struct {
+    char *content;
+    int size;
+} Row;
+
 struct buffer {
     Row *rows;
-    Cursor cur;
     File file;
-
-    WINDOW *win;
-    View view;
-
-    WINDOW *statusline;
-    WINDOW *numbercol;
 };
 
 #ifndef TYPEDEF_BUFFER
@@ -38,14 +23,11 @@ struct buffer {
 typedef struct buffer Buffer;
 #endif 
 
-Buffer buffer_create(int height, int width, int y, int x);
-void buffer_render(Buffer * buf); 
-void buffer_render_numbercol(Buffer * buf); 
-void buffer_render_rows(Buffer * buf); 
-void buffer_render_statusline(Buffer * buf); 
-void buffer_scroll(Buffer *buf, int y, int x);
-    
-Row *current_row(Buffer *buf);
-int current_line(Buffer *buf);
-int current_col(Buffer *buf);
+#ifndef TYPEDEF_WIN
+#define TYPEDEF_WIN
+typedef struct window Win;
+#endif 
+
+Buffer * buffer_create();
+Row *current_row(Win *win); 
 #endif

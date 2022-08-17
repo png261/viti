@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include "mess.h"
 #include "util.h"
+#include "window.h"
 #include <ncurses.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -11,7 +12,7 @@
 struct Status status;
 #endif
 
-extern Buffer *cbuf;
+extern Win *cwin;
 
 void mess_send(const char *format, ...) {
     wclear(status.win);
@@ -19,9 +20,9 @@ void mess_send(const char *format, ...) {
     va_start(ap, format);
     vsnprintf(status.content, sizeof(status.content), format, ap);
     va_end(ap);
-    wprintw(status.win, status.content);
+    waddstr(status.win, status.content);
     wrefresh(status.win);
-    touchwin(cbuf->win);
+    touchwin(cwin->textarea);
 }
 
 char *prompt(char *format) {
@@ -47,5 +48,5 @@ char *prompt(char *format) {
         str[strlen++] = c;
         str[strlen] = '\0';
     }
-    return str;
+    return NULL;
 }

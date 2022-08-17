@@ -1,6 +1,7 @@
 #ifndef EDIT_H
 #define EDIT_H
 #include "buffer.h"
+#include "window.h"
 
 void append_char(int line, int col, char c);
 void append_str(int line, char *str);

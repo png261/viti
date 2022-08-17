@@ -2,29 +2,32 @@
 #include <stdlib.h>
 
 #include "buffer.h"
+#include "cursor.h"
 #include "file_io.h"
 #include "mess.h"
 #include "mode.h"
+#include "window.h"
+
 #include "util.h"
 
 extern struct Status status;
-extern Buffer *cbuf;
-extern Buffer *Bufs;
+extern Win *cwin;
 
 /* setup */
 void ncursesSetup() {
     initscr();
+    ESCDELAY = 10;
     start_color();
     raw();
-    keypad(stdscr, TRUE);
     noecho();
+    keypad(stdscr, TRUE);
 }
 
 void init() {
     int mess_height = 1;
-    Bufs = malloc(sizeof(Buffer));
-    Bufs[0] = buffer_create(LINES - mess_height, COLS, 0, 0);
-    cbuf = &Bufs[0];
+    cwin = win_create(LINES - mess_height, COLS, 0, 0);
+    cwin->buf = buffer_create(LINES - mess_height, COLS, 0, 0);
+
     status.win = newwin(mess_height, COLS, LINES - mess_height, 0);
     refresh();
 }
@@ -35,11 +38,11 @@ int main(int argc, char *argv[]) {
     init();
 
     if (argc >= 2) {
-        file_open(argv[1], cbuf);
+        file_open(argv[1], cwin->buf);
     }
 
-    buffer_render(cbuf);
-    cursor_refresh(cbuf);
+    win_render(cwin);
+    cursor_refresh(cwin);
     mode_switch(NORMAL);
     quit();
 }

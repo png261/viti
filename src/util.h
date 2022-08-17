@@ -5,7 +5,6 @@
 
 void die(const char *message );
 void quit();
-void elog(const char *format, ...);
 
 
 

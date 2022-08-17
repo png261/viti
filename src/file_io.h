@@ -7,7 +7,6 @@
 typedef struct buffer Buffer;
 #endif 
 
-
 void file_open(char *filename,Buffer *buf);
 void file_save(Buffer *buf);
 

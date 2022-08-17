@@ -4,47 +4,47 @@
 #include "insert.h"
 #include "mode.h"
 #include "util.h"
+#include "window.h"
 
-extern Buffer *cbuf;
+extern Win *cwin;
 
 void insertMode(int c) {
     switch (c) {
     /* move */
     case KEY_LEFT:
-        cursor_left(cbuf);
+        cursor_left(cwin);
         break;
     case KEY_RIGHT:
-        cursor_right(cbuf);
+        cursor_right(cwin);
         break;
     case KEY_DOWN:
-        cursor_down(cbuf);
+        cursor_down(cwin);
         break;
     case KEY_UP:
-        cursor_up(cbuf);
+        cursor_up(cwin);
         break;
-
-    /* edit */
+        /* edit */
     case CTRL('c'):
     case '\x1b':
         mode_switch(NORMAL);
         break;
     case '\n':
-        if (current_col(cbuf) == 0) {
-            add_line(current_line(cbuf), "");
+        if (current_col(cwin) == 0) {
+            add_line(current_line(cwin), "");
         } else {
-            break_line(current_line(cbuf), current_col(cbuf));
-            cbuf -> cur.x = 0;
-            cbuf -> cur.y++;
-            cursor_refresh(cbuf);
+            break_line(current_line(cwin), current_col(cwin));
+            cwin->cur.x = 0;
+            cwin->cur.y++;
+            cursor_refresh(cwin);
         }
         break;
     case CTRL('h'):
     case KEY_BACKSPACE:
-        del_char(current_line(cbuf), current_col(cbuf) - 1);
-        cursor_left(cbuf);
+        del_char(current_line(cwin), current_col(cwin) - 1);
+        cursor_left(cwin);
         break;
     default:
-        append_char(current_line(cbuf), current_col(cbuf), c);
+        append_char(current_line(cwin), current_col(cwin), c);
         break;
     }
 }

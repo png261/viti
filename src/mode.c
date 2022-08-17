@@ -4,15 +4,16 @@
 #include "mess.h"
 #include "mode.h"
 #include "normal.h"
+#include "util.h"
 #include <ncurses.h>
 
-extern Buffer *cbuf;
+extern Win *cwin;
 
 int cmode = NORMAL;
 
 void loopKey(int mode, void (*callback)(int)) {
     while (1) {
-        int c = wgetch(cbuf->win);
+        int c = wgetch(cwin->textarea);
         callback(c);
         if (cmode != mode)
             break;
