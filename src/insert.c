@@ -1,5 +1,7 @@
 #include "insert.h"
 
+#include <ncurses.h>
+
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
@@ -34,8 +36,8 @@ void insertMode(int c) {
             add_line(current_line(cwin), "");
         } else {
             break_line(current_line(cwin), current_col(cwin));
-            cwin->cur.x = 0;
-            cwin->cur.y++;
+            cwin->buf->col = 0;
+            cwin->buf->line++;
             cursor_refresh(cwin);
         }
         break;

@@ -22,6 +22,5 @@ void cursor_up(Win * win);
 void cursor_down(Win * win);
 
 void handleScroll(Win *win);
-void cursor_check(Win *win); 
 #endif
 

@@ -108,8 +108,8 @@ void join_line(int line) {
         return;
     }
 
-    cwin->cur.x = (row - 1)->size;
-    cwin->cur.y = line - 1;
+    cwin->buf->col = (row - 1)->size + 1;
+    cwin->buf->line = line - 1;
 
     append_line(line - 1, row->content);
     del_line(line);

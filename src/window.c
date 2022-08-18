@@ -1,5 +1,6 @@
 #include "window.h"
 
+#include "color.h"
 #include "mess.h"
 #include "search.h"
 #include "stdlib.h"
@@ -7,11 +8,10 @@
 #include <string.h>
 
 Win *cwin;
-
 extern MatchedList *matched_list;
 
-int current_line(Win *win) { return win->cur.y + win->view.yoff; }
-int current_col(Win *win) { return win->cur.x + win->view.xoff; }
+int current_line(Win *win) { return win->buf->line; }
+int current_col(Win *win) { return win->buf->col; }
 int buffer_progress(Win *win) {
     return (int)((float)(current_line(win) + 1) / win->buf->file.lines * 100);
 }
@@ -34,10 +34,10 @@ Win *win_create(Buffer *buf, int height, int width, int y, int x) {
     win->view.y = height - size_statusline;
 
     win->textarea = newwin(win->view.y, win->view.x, y, x + size_numbercol);
+    keypad(win->textarea, TRUE);
     win->numbercol = newwin(height - size_statusline, size_numbercol, y, x);
     win->statusline =
         newwin(size_statusline, width, height - size_statusline, x);
-    keypad(win->textarea, TRUE);
     refresh();
     return win;
 }
@@ -51,7 +51,6 @@ void win_render_rows(Win *win) {
         matched = matched_list->matched;
     }
 
-    init_pair(1, COLOR_BLACK, COLOR_GREEN);
     for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
         int line = win->view.yoff + y;
         Row *row = &buf->rows[line];
@@ -60,9 +59,9 @@ void win_render_rows(Win *win) {
             int col = win->view.xoff + x;
             if (matched != NULL && matched->y == line && col >= matched->x &&
                 col < (matched->x + matched_list->len)) {
-                wattron(win->textarea, COLOR_PAIR(1));
+                wattron(win->textarea, COLOR_PAIR(PAIR_HIGHLIGHT));
                 mvwaddch(win->textarea, y, x, row->content[col]);
-                wattroff(win->textarea, COLOR_PAIR(1));
+                wattroff(win->textarea, COLOR_PAIR(PAIR_HIGHLIGHT));
             } else {
                 int col = win->view.xoff + x;
                 mvwaddch(win->textarea, y, x, row->content[col]);
@@ -79,28 +78,32 @@ void win_render_rows(Win *win) {
 void win_render_numbercol(Win *win) {
     Buffer *buf = win->buf;
     werase(win->numbercol);
+    wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->view.y; y++) {
         if (y + win->view.yoff >= buf->file.lines) {
-            mvwaddstr(win->numbercol, y, 0, "~");
+            mvwaddch(win->numbercol, y, 0, '~');
             continue;
         }
         char num[20];
-        if (y == win->cur.y) {
+        if (y == win->buf->line) {
+
             sprintf(num, "%d", y + win->view.yoff + 1);
             mvwaddstr(win->numbercol, y, 0, num);
+
         } else {
-            sprintf(num, "%d", abs(win->cur.y - y));
+            sprintf(num, "%d", abs(win->buf->line - y));
             mvwaddstr(win->numbercol, y, 2, num);
         }
     }
+    wattroff(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
     wrefresh(win->numbercol);
 }
 
 void win_render_statusline(Win *win) {
     Buffer *buf = win->buf;
     werase(win->statusline);
-    wbkgd(win->statusline, A_REVERSE);
+    wbkgd(win->statusline, COLOR_PAIR(PAIR_STATUSLINE));
     waddstr(win->statusline,
             buf->file.name != NULL ? buf->file.name : "[NONAME]");
 

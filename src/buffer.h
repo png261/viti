@@ -13,6 +13,8 @@ typedef struct {
 } Row;
 
 struct buffer {
+    int line;
+    int col;
     Row *rows;
     File file;
 };

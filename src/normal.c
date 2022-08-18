@@ -6,10 +6,12 @@
 #include "file_io.h"
 #include "mess.h"
 #include "mode.h"
+#include "search.h"
 #include "util.h"
 #include "window.h"
 
 extern Win *cwin;
+extern MatchedList *matched_list;
 
 void normalMode(int c) {
     switch (c) {
@@ -25,6 +27,13 @@ void normalMode(int c) {
         break;
     case 'k':
         cursor_up(cwin);
+        break;
+    /* search */
+    case 'n':
+        search_next();
+        break;
+    case 'N':
+        search_prev();
         break;
     /* edit */
     case 'd':
@@ -53,7 +62,7 @@ void normalMode(int c) {
         cursor_refresh(cwin);
         break;
     case 'I':
-        cwin->cur.x = 0;
+        cwin->buf->col = 0;
         cursor_refresh(cwin);
         mode_switch(INSERT);
         break;
@@ -67,20 +76,20 @@ void normalMode(int c) {
         mode_switch(INSERT);
         break;
     case 'A':
-        cwin->cur.x = current_row(cwin)->size;
+        cwin->buf->col = current_row(cwin)->size;
         cursor_refresh(cwin);
         mode_switch(INSERT);
         break;
     case 'O':
         add_line(current_line(cwin), "");
-        cwin->cur.x = 0;
+        cwin->buf->col = 0;
         cursor_refresh(cwin);
         mode_switch(INSERT);
         break;
     case 'o':
         add_line(current_line(cwin) + 1, "");
-        cwin->cur.x = 0;
-        cwin->cur.y++;
+        cwin->buf->col = 0;
+        cwin->buf->line++;
         cursor_refresh(cwin);
         mode_switch(INSERT);
         break;

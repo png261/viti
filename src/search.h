@@ -14,9 +14,12 @@ typedef struct{
 typedef struct{
     int len;
     int n;
+    char * query;
     Matched * matched;
 } MatchedList;
 
 void searchMode();
+void search_next();
+void search_prev();
 void search(Win * win, char * query);
 #endif

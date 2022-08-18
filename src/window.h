@@ -13,11 +13,6 @@ typedef struct buffer Buffer;
 typedef struct{
     int x;
     int y;
-} Cursor; 
-
-typedef struct{
-    int x;
-    int y;
     int xoff;
     int yoff;
 }View;
@@ -25,7 +20,6 @@ typedef struct{
 struct window{
     Buffer * buf;
     View view;
-    Cursor cur;
 
     WINDOW *textarea;
     WINDOW *statusline;
