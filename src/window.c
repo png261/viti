@@ -9,7 +9,6 @@
 #include <string.h>
 
 Win *cwin;
-extern MatchedList *matched_list;
 extern char *search_query;
 
 int current_line(Win *win) { return win->buf->line; }
@@ -54,11 +53,12 @@ void print_rows(Win *win) {
     }
 }
 
-void update_highlight(Win *win) {
-    Buffer *buf = win->buf;
-    if (search_query == NULL) {
+void win_update_highlight(Win *win) {
+    if (!is_highlight || search_query == NULL) {
         return;
     }
+
+    Buffer *buf = win->buf;
     for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
         highlight_row(win, win->view.yoff + y, search_query, PAIR_HIGHLIGHT);
     }
@@ -68,7 +68,7 @@ void win_render_rows(Win *win) {
     wclear(win->textarea);
 
     print_rows(win);
-    update_highlight(win);
+    win_update_highlight(win);
 
     wrefresh(win->textarea);
 }

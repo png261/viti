@@ -35,7 +35,6 @@ char *prompt(char *format, void (*callback)(char *, int)) {
                 callback(str, c);
             }
             return str;
-            break;
         }
         if (c == '\x1b') {
             mess_send("");
@@ -43,11 +42,13 @@ char *prompt(char *format, void (*callback)(char *, int)) {
                 callback(str, c);
             }
             free(str);
-            break;
+            return NULL;
         }
 
         if (c == CTRL('h') || c == KEY_BACKSPACE) {
-            str[--strlen] = '\0';
+            if (strlen != 0) {
+                str[--strlen] = '\0';
+            }
         } else {
             if (strlen == size - 1) {
                 size *= 2;
@@ -62,5 +63,4 @@ char *prompt(char *format, void (*callback)(char *, int)) {
             callback(str, c);
         }
     }
-    return NULL;
 }

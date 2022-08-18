@@ -7,7 +7,6 @@
 #include "file_io.h"
 #include "mess.h"
 #include "mode.h"
-#include "search.h"
 #include "window.h"
 
 #include "util.h"

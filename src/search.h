@@ -7,16 +7,14 @@
 typedef struct window Win;
 #endif 
 
-typedef struct{
+typedef struct matched_position{
     int x,y;
-} Matched;
+} Pos;
 
-typedef struct{
-    int len;
-    int n;
-    char * query;
-    Matched * matched;
-} MatchedList;
+extern Pos * matched_list;
+extern char *search_query;
+extern int matched_index;
+extern int matched_count;
 
 void searchMode();
 void search_next();

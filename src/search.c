@@ -1,5 +1,8 @@
 #include "search.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
@@ -7,18 +10,26 @@
 #include "mess.h"
 #include "mode.h"
 #include "window.h"
-#include <stdlib.h>
-#include <string.h>
 
+/* extern */
 extern Win *cwin;
-MatchedList *matched_list;
-MatchedList *matched_list_old;
+extern int is_highlight;
 
+/* export var */
 int matched_index = 0;
-char *search_query;
+int matched_count = 0;
+Pos *matched_list = NULL;
+char *search_query = NULL;
+
+/* local var */
+Pos *matched_list_old;
 char *search_query_old;
 
 void search_callback(char *query, int c) {
+    search_query = query;
+    if (!strlen(query)) {
+        return;
+    }
     search(cwin, query);
     if (c == '\x1b') {
         free(matched_list);
@@ -36,30 +47,34 @@ void search_callback(char *query, int c) {
 void searchMode() {
     matched_list_old = matched_list;
     search_query_old = search_query;
-    char *query = prompt("/%s", search_callback);
-    if (query == NULL) {
-        mode_switch(NORMAL);
+    is_highlight = 1;
+    prompt("/%s", search_callback);
+    mode_switch(NORMAL);
+}
+void search_move() {
+    if (!matched_count) {
         return;
     }
-    search_query = query;
-
-    mess_send("/%s", query);
-    mode_switch(NORMAL);
+    Pos *matched = &matched_list[matched_index];
+    cwin->buf->col = matched->x;
+    cwin->buf->line = matched->y;
+    handleScroll(cwin);
+    cursor_refresh(cwin);
 }
 
 void search(Win *win, char *query) {
-    if (query == NULL) {
+    search_query = query;
+    if (!strlen(query)) {
         return;
     }
 
     matched_index = 0;
-    matched_list = malloc(sizeof(MatchedList));
-    search_query = query;
-    matched_list->matched = malloc(sizeof(Matched));
-    Matched *matched = matched_list->matched;
+
+    matched_list = malloc(sizeof(Pos));
+    Pos *matched = matched_list;
 
     Buffer *buf = win->buf;
-    matched_list->n = 0;
+    matched_count = 0;
     int len = strlen(query);
 
     /* find all postions */
@@ -68,52 +83,32 @@ void search(Win *win, char *query) {
         char *str = row->content;
         char *match;
         while ((match = strstr(str, query)) != NULL) {
-            matched_list->n++;
             matched->x = match - row->content;
             matched->y = y;
-            realloc(matched_list->matched,
-                    (matched_list->n + 1) * sizeof(Matched));
+            matched_count++;
+            realloc(matched_list, (matched_count + 1) * sizeof(Pos));
             matched++;
             str = match + len;
         }
     }
     win_render_rows(cwin);
-
-    if (matched_list->n == 0) {
-        return;
-    }
-
-    /* move cursor to the first matched */
-    cwin->buf->col = matched_list->matched->x;
-    cwin->buf->line = matched_list->matched->y;
-    handleScroll(cwin);
-    cursor_refresh(cwin);
+    search_move();
 }
 
 void search_next() {
-    if (matched_list == NULL || matched_list->n == 0) {
+    if (matched_list == NULL || matched_count == 0) {
         return;
     }
 
-    matched_index++;
-    Matched *matched =
-        matched_list->matched + (matched_index % matched_list->n);
-    cwin->buf->col = matched->x;
-    cwin->buf->line = matched->y;
-    handleScroll(cwin);
-    cursor_refresh(cwin);
+    matched_index = ++matched_index % matched_count;
+    search_move();
 }
 
 void search_prev() {
-    if (matched_list == NULL || matched_list->n == 0) {
+    if (matched_list == NULL || matched_count == 0) {
         return;
     }
 
-    matched_index--;
-    Matched *matched = matched_list->matched +
-                       ((matched_list->n + matched_index) % matched_list->n);
-    cwin->buf->col = matched->x;
-    cwin->buf->line = matched->y;
-    handleScroll(cwin);
-    cursor_refresh(cwin);
+    matched_index = abs(matched_count + matched_index - 1) % matched_count;
+    search_move();
 }

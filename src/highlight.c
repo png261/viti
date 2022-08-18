@@ -4,11 +4,18 @@
 #include "util.h"
 #include <string.h>
 
+int is_highlight = 1;
+
 void highlight_row(Win *win, int line, char *query, int color_pair) {
+    if (!strlen(query)) {
+        return;
+    }
+
     Row *row = &win->buf->rows[line];
     int len = strlen(query);
     int from;
     char *match = row->content;
+
     while ((match = strstr(match, query)) != NULL) {
         from = match - row->content;
         for (int x = from; x < from + len; x++) {

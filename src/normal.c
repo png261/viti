@@ -11,7 +11,6 @@
 #include "window.h"
 
 extern Win *cwin;
-extern MatchedList *matched_list;
 
 void normalMode(int c) {
     switch (c) {

@@ -8,4 +8,6 @@ typedef struct window Win;
 #endif 
 
 void highlight_row(Win * win, int line, char* query, int color_pair);
+extern int is_highlight; 
+
 #endif
