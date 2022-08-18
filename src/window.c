@@ -1,6 +1,7 @@
 #include "window.h"
 
 #include "color.h"
+#include "highlight.h"
 #include "mess.h"
 #include "search.h"
 #include "stdlib.h"
@@ -9,6 +10,7 @@
 
 Win *cwin;
 extern MatchedList *matched_list;
+extern char *search_query;
 
 int current_line(Win *win) { return win->buf->line; }
 int current_col(Win *win) { return win->buf->col; }
@@ -42,35 +44,31 @@ Win *win_create(Buffer *buf, int height, int width, int y, int x) {
     return win;
 }
 
+void print_rows(Win *win) {
+    Buffer *buf = win->buf;
+    for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
+        Row *row = &buf->rows[win->view.yoff + y];
+        for (int x = 0; x < MIN(row->size - win->view.xoff, win->view.x); x++) {
+            mvwaddch(win->textarea, y, x, row->content[win->view.xoff + x]);
+        }
+    }
+}
+
+void update_highlight(Win *win) {
+    Buffer *buf = win->buf;
+    if (search_query == NULL) {
+        return;
+    }
+    for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
+        highlight_row(win, win->view.yoff + y, search_query, PAIR_HIGHLIGHT);
+    }
+}
+
 void win_render_rows(Win *win) {
     wclear(win->textarea);
 
-    Buffer *buf = win->buf;
-    Matched *matched = NULL;
-    if (matched_list != NULL) {
-        matched = matched_list->matched;
-    }
-
-    for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
-        int line = win->view.yoff + y;
-        Row *row = &buf->rows[line];
-        int cols = MIN(row->size - win->view.xoff, win->view.x);
-        for (int x = 0; x < cols; x++) {
-            int col = win->view.xoff + x;
-            if (matched != NULL && matched->y == line && col >= matched->x &&
-                col < (matched->x + matched_list->len)) {
-                wattron(win->textarea, COLOR_PAIR(PAIR_HIGHLIGHT));
-                mvwaddch(win->textarea, y, x, row->content[col]);
-                wattroff(win->textarea, COLOR_PAIR(PAIR_HIGHLIGHT));
-            } else {
-                int col = win->view.xoff + x;
-                mvwaddch(win->textarea, y, x, row->content[col]);
-            }
-        }
-        if (matched != NULL && line == matched->y) {
-            matched++;
-        }
-    }
+    print_rows(win);
+    update_highlight(win);
 
     wrefresh(win->textarea);
 }
@@ -87,7 +85,6 @@ void win_render_numbercol(Win *win) {
         }
         char num[20];
         if (y == win->buf->line) {
-
             sprintf(num, "%d", y + win->view.yoff + 1);
             mvwaddstr(win->numbercol, y, 0, num);
 

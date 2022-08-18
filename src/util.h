@@ -6,5 +6,3 @@
 void die(const char *message );
 void quit();
 
-
-

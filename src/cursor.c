@@ -22,18 +22,21 @@ void handleScroll(Win *win) {
 
     if (buf->col < win->view.xoff) {
         win->view.xoff = buf->col;
+        win_render_rows(win);
     }
     if (buf->col >= win->view.xoff + win->view.x) {
         win->view.xoff = buf->col - win->view.x + 1;
+        win_render_rows(win);
     }
 
     if (buf->line < win->view.yoff) {
         win->view.yoff = buf->line;
+        win_render_rows(win);
     }
     if (buf->line >= win->view.yoff + win->view.y) {
         win->view.yoff = buf->line - win->view.y + 1;
+        win_render_rows(win);
     }
-    win_render_rows(win);
 }
 
 void cursor_right(Win *win) {

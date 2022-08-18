@@ -16,15 +16,19 @@ extern MatchedList *matched_list;
 void normalMode(int c) {
     switch (c) {
     /* move */
+    case KEY_LEFT:
     case 'h':
         cursor_left(cwin);
         break;
+    case KEY_RIGHT:
     case 'l':
         cursor_right(cwin);
         break;
+    case KEY_DOWN:
     case 'j':
         cursor_down(cwin);
         break;
+    case KEY_UP:
     case 'k':
         cursor_up(cwin);
         break;

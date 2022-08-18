@@ -2,6 +2,7 @@
 
 #include <ncurses.h>
 #include <stdlib.h>
+#include <string.h>
 
 void die(const char *message) {
     clear();
