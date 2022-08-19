@@ -2,12 +2,6 @@
 #define CURSOR_H
 
 #include "window.h"
-#include "buffer.h"
-
-#ifndef TYPEDEF_BUFFER
-#define TYPEDEF_BUFFER
-typedef struct buffer Buffer;
-#endif 
 
 #ifndef TYPEDEF_WIN
 #define TYPEDEF_WIN

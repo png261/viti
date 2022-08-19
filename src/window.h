@@ -8,9 +8,10 @@
 #ifndef TYPEDEF_BUFFER
 #define TYPEDEF_BUFFER
 typedef struct buffer Buffer;
+typedef struct Row Row;
 #endif 
 
-typedef struct{
+typedef struct View{
     int x;
     int y;
     int xoff;
@@ -40,5 +41,6 @@ void win_render_statusline(Win * buf);
 int current_line(Win *win); 
 int current_col(Win *win); 
 int buffer_progress(Win *win); 
+Row *current_row(Win *win);
 
 #endif

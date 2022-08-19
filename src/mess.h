@@ -8,6 +8,6 @@ typedef struct message{
 } Message;
 
 void mess_send(const char *format, ...);
-char *prompt(char *format, void (*callback)(char *, int));
+char *prompt(const char *format, void (*callback)(char *, int));
 
 #endif

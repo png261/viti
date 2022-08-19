@@ -2,6 +2,7 @@
 
 #include "mess.h"
 #include "window.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,8 +15,8 @@ void append_char(int line, int col, char c) {
         col = row->size;
     }
 
-    row->content = realloc(row->content, row->size + 2);
-    memmove(&row->content[col + 1], &row->content[col], row->size - col + 1);
+    row->content = xrealloc(row->content, strlen(row->content) + 1);
+    memmove(&row->content[col + 1], &row->content[col], strlen(row->content) - col);
     row->content[col] = c;
     row->size++;
     win_render_rows(cwin);
@@ -29,14 +30,14 @@ void del_char(int line, int col) {
         return;
     }
 
-    memmove(&row->content[col], &row->content[col + 1], row->size - col);
+    memmove(&row->content[col], &row->content[col + 1], strlen(row->content) - col);
     row->size--;
     win_render_rows(cwin);
 }
 
 /* line */
 char *get_substring(char *str, int start, int len) {
-    char *substr = malloc((len) * sizeof(char));
+    char *substr = xmalloc((len) * sizeof(*substr));
     memcpy(substr, &str[start], len);
     substr[len] = '\0';
     return substr;
@@ -52,7 +53,7 @@ char *del_str(int line, int start, int end) {
     char *deleted_str = get_substring(row->content, start, len);
 
     if (start < end) {
-        memmove(&row->content[start], &row->content[end], row->size - len);
+        memmove(&row->content[start], &row->content[end], strlen(row->content) - len);
     }
 
     row->size -= len;
@@ -62,41 +63,41 @@ char *del_str(int line, int start, int end) {
 }
 
 void add_line(int line, char *str) {
-    Buffer *cbuf = cwin->buf;
-    cbuf->rows = realloc(cbuf->rows, (cbuf->file.lines + 1) * sizeof(Row));
+    Buffer *buf = cwin->buf;
+    buf->rows = xrealloc(buf->rows, (buf->file.lines + 1) * sizeof(*buf->rows));
 
-    if (line < cbuf->file.lines) {
-        memmove(&cbuf->rows[line + 1], &cbuf->rows[line],
-                (cbuf->file.lines - line) * sizeof(Row));
+    if (line < buf->file.lines) {
+        memmove(&buf->rows[line + 1], &buf->rows[line],
+                (buf->file.lines - line) * sizeof(*buf->rows));
     }
 
-    int len = strlen(str);
-    Row *row = &cbuf->rows[line];
-    row->content = malloc(sizeof(str));
+    const int len = strlen(str);
+    Row *row = &buf->rows[line];
+    row->content = xmalloc(sizeof(str));
     memcpy(row->content, str, len);
     row->size = len;
     row->content[row->size] = '\0';
-    cbuf->file.lines++;
+    buf->file.lines++;
 
     win_render_rows(cwin);
     cursor_refresh(cwin);
 }
 
 void del_line(int line) {
-    Buffer *cbuf = cwin->buf;
-    if (line < 0 || line >= cbuf->file.lines) {
+    Buffer *buf = cwin->buf;
+    if (line < 0 || line >= buf->file.lines) {
         return;
     }
-    Row *row = &cbuf->rows[line];
+    Row *row = &buf->rows[line];
     free(row->content);
-    memmove(row, row + 1, sizeof(Row) * (cbuf->file.lines - line - 1));
-    cbuf->file.lines--;
+    memmove(row, row + 1, sizeof(Row) * (buf->file.lines - line - 1));
+    buf->file.lines--;
 }
 
 void append_line(int line, char *str) {
     Row *row = &cwin->buf->rows[line];
-    int len = strlen(str);
-    row->content = realloc(row->content, row->size + len + 1);
+    const int len = strlen(str);
+    row->content = xrealloc(row->content, strlen(row->content) + len + 1);
     memcpy(&row->content[row->size], str, len);
     row->size += len;
     row->content[row->size] = '\0';

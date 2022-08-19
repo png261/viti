@@ -17,8 +17,9 @@ void loopKey(int mode, void (*callback)(int)) {
     while (1) {
         int c = wgetch(cwin->textarea);
         callback(c);
-        if (cmode != mode)
-            break;
+        if (cmode != mode) {
+            break; 
+        }
     }
 }
 

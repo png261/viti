@@ -1,6 +1,7 @@
 #include "window.h"
 
 #include "color.h"
+#include "buffer.h"
 #include "highlight.h"
 #include "mess.h"
 #include "search.h"
@@ -11,14 +12,24 @@
 Win *cwin;
 extern char *search_query;
 
-int current_line(Win *win) { return win->buf->line; }
-int current_col(Win *win) { return win->buf->col; }
+int current_line(Win *win) {
+    return win->buf->line; 
+}
+
+int current_col(Win *win) {
+    return win->buf->col; 
+}
+
 int buffer_progress(Win *win) {
-    return (int)((float)(current_line(win) + 1) / win->buf->file.lines * 100);
+    return (int)((float)(win->buf->line + 1) / win->buf->file.lines * 100);
+}
+
+Row *current_row(Win *win) { 
+    return &win->buf->rows[win->buf->line];
 }
 
 Win *win_create(Buffer *buf, int height, int width, int y, int x) {
-    Win *win = malloc(sizeof(Win));
+    Win *win = xmalloc(sizeof(*win));
 
     if (buf == NULL) {
         win->buf = buffer_create();
@@ -26,8 +37,8 @@ Win *win_create(Buffer *buf, int height, int width, int y, int x) {
         win->buf = buf;
     }
 
-    int size_statusline = 1;
-    int size_numbercol = 6;
+    const int size_statusline = 1;
+    const int size_numbercol = 6;
 
     win->view.xoff = 0;
     win->view.yoff = 0;
@@ -40,6 +51,7 @@ Win *win_create(Buffer *buf, int height, int width, int y, int x) {
     win->statusline =
         newwin(size_statusline, width, height - size_statusline, x);
     refresh();
+
     return win;
 }
 
@@ -47,9 +59,8 @@ void print_rows(Win *win) {
     Buffer *buf = win->buf;
     for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
         Row *row = &buf->rows[win->view.yoff + y];
-        for (int x = 0; x < MIN(row->size - win->view.xoff, win->view.x); x++) {
-            mvwaddch(win->textarea, y, x, row->content[win->view.xoff + x]);
-        }
+        int len = MIN(MAX(row->size - win->view.xoff, 0), win->view.x);
+        mvwaddnstr(win->textarea, y, 0, &row->content[win->view.xoff], len);
     }
 }
 
@@ -73,6 +84,18 @@ void win_render_rows(Win *win) {
     wrefresh(win->textarea);
 }
 
+void relative_number(Win *win, int y) {
+    char num[20];
+    if (y == win->buf->line) {
+        sprintf(num, "%d", y + win->view.yoff + 1);
+        mvwaddstr(win->numbercol, y, 0, num);
+
+    } else {
+        sprintf(num, "%d", abs(win->buf->line - y));
+        mvwaddstr(win->numbercol, y, 2, num);
+    }
+}
+
 void win_render_numbercol(Win *win) {
     Buffer *buf = win->buf;
     werase(win->numbercol);
@@ -81,18 +104,11 @@ void win_render_numbercol(Win *win) {
     for (int y = 0; y < win->view.y; y++) {
         if (y + win->view.yoff >= buf->file.lines) {
             mvwaddch(win->numbercol, y, 0, '~');
-            continue;
-        }
-        char num[20];
-        if (y == win->buf->line) {
-            sprintf(num, "%d", y + win->view.yoff + 1);
-            mvwaddstr(win->numbercol, y, 0, num);
-
         } else {
-            sprintf(num, "%d", abs(win->buf->line - y));
-            mvwaddstr(win->numbercol, y, 2, num);
+            relative_number(win, y);
         }
     }
+
     wattroff(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
     wrefresh(win->numbercol);
 }
@@ -101,6 +117,7 @@ void win_render_statusline(Win *win) {
     Buffer *buf = win->buf;
     werase(win->statusline);
     wbkgd(win->statusline, COLOR_PAIR(PAIR_STATUSLINE));
+
     waddstr(win->statusline,
             buf->file.name != NULL ? buf->file.name : "[NONAME]");
 
@@ -111,6 +128,7 @@ void win_render_statusline(Win *win) {
 
     mvwaddstr(win->statusline, 0,
               COLS - strlen(lineinfo) - 5 - strlen(percentInfo), lineinfo);
+
     mvwaddstr(win->statusline, 0, COLS - strlen(percentInfo), percentInfo);
 
     wrefresh(win->statusline);

@@ -26,7 +26,7 @@ void ncurses_init() {
 void init() {
     ncurses_init();
     color_init();
-    int mess_height = 1;
+    const int mess_height = 1;
     cwin = win_create(NULL, LINES - mess_height, COLS, 0, 0);
     mess.win = newwin(mess_height, COLS, LINES - mess_height, 0);
     refresh();

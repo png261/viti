@@ -2,12 +2,12 @@
 #define BUFFER_H
 #include "window.h"
 
-typedef struct{
+typedef struct File{
     char * name;
     int lines;
 } File;
 
-typedef struct {
+typedef struct Row {
     char *content;
     int size;
 } Row;
@@ -30,5 +30,4 @@ typedef struct window Win;
 #endif 
 
 Buffer * buffer_create();
-Row *current_row(Win *win); 
 #endif

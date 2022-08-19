@@ -54,7 +54,7 @@ void file_open(char *filename, Buffer *buf) {
     }
 
     buf->file.lines = countLines(filename);
-    buf->rows = calloc(buf->file.lines, sizeof(Row));
+    buf->rows = xcalloc(buf->file.lines, sizeof(Row));
 
     char *line = NULL;
     size_t linecap = 0;
@@ -63,7 +63,7 @@ void file_open(char *filename, Buffer *buf) {
     Row *current = buf->rows;
     while ((getline(&line, &linecap, fp)) != -1) {
         linelen = trim(line);
-        current->content = malloc(linelen * sizeof(char));
+        current->content = xmalloc(linelen * sizeof(*current->content));
         memcpy(current->content, line, linelen);
         current->size = linelen;
         current++;

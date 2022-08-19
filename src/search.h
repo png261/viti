@@ -7,7 +7,7 @@
 typedef struct window Win;
 #endif 
 
-typedef struct matched_position{
+typedef struct Pos{
     int x,y;
 } Pos;
 

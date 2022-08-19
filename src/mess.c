@@ -16,14 +16,15 @@ void mess_send(const char *format, ...) {
     va_start(ap, format);
     vsnprintf(mess.content, sizeof(mess.content), format, ap);
     va_end(ap);
+
     waddstr(mess.win, mess.content);
     wrefresh(mess.win);
     touchwin(cwin->textarea);
 }
 
-char *prompt(char *format, void (*callback)(char *, int)) {
+char *prompt(const char *format, void (*callback)(char *, int)) {
     size_t size = 128;
-    char *str = malloc(size);
+    char *str = xmalloc(size);
     size_t strlen = 0;
     str[strlen] = '\0';
     while (1) {
@@ -52,7 +53,7 @@ char *prompt(char *format, void (*callback)(char *, int)) {
         } else {
             if (strlen == size - 1) {
                 size *= 2;
-                str = realloc(str, size);
+                str = xrealloc(str, size);
             }
 
             str[strlen++] = c;

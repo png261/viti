@@ -17,8 +17,8 @@ void handleScroll(Win *win) {
     Buffer *buf = win->buf;
     Row *row = current_row(win);
 
-    buf->col = RANGE(buf->col, 0, row->size);
-    buf->line = RANGE(buf->line, 0, buf->file.lines - 1);
+    LIMIT(buf->col, 0, row->size);
+    LIMIT(buf->line, 0, buf->file.lines - 1);
 
     if (buf->col < win->view.xoff) {
         win->view.xoff = buf->col;

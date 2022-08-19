@@ -24,7 +24,7 @@ void commandMode() {
     } else if (!strcmp(query, "w")) {
         file_save(cwin->buf);
     } else if (!strcmp(query, "noh")) {
-        is_highlight = 0;
+        is_highlight = false;
         win_render_rows(cwin);
     } else if (sscanf(query, "w %s", filename) == 1) {
         cwin->buf->file.name = filename;
