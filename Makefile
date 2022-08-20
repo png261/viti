@@ -17,16 +17,16 @@ endif
 
 
 # Gets the Operating system name
-OS := $(shell uname -s)
+OS = $(shell uname -s)
 
 # Default shell
-SHELL := bash
+SHELL = bash
 
 # Color prefix for Linux distributions
-COLOR_PREFIX := e
+COLOR_PREFIX = e
 
 ifeq ($(OS),Darwin)
-	COLOR_PREFIX := 033
+	COLOR_PREFIX = 033
 endif
 
 # Color definition for print purpose
@@ -35,40 +35,40 @@ BLUE=\$(COLOR_PREFIX)[1;34m
 END_COLOR=\$(COLOR_PREFIX)[0m
 
 # Source code directory structure
-BINDIR := bin
-SRCDIR := src
-LOGDIR := log
-LIBDIR := lib
-TESTDIR := test
+BINDIR = bin
+SRCDIR = src
+LOGDIR = log
+LIBDIR = lib
+TESTDIR = test
 
 # Source code file extension
-SRCEXT := c
+SRCEXT = c
 
 
 # Defines the C Compiler
-CC := gcc
+CC = gcc
 
 # Defines the language standards for GCC
-STD := -std=c11 # See man gcc for more options
+STD = -std=c11 # See man gcc for more options
 
 # Protection for stack-smashing attack
-STACK := -fstack-protector-all -Wstack-protector
+STACK = -fstack-protector-all -Wstack-protector
 
 # Specifies to GCC the required warnings
-WARNS := -Wall -Wextra -pedantic # -pedantic warns on language standards
+WARNS = -Wall -Wextra -pedantic # -pedantic warns on language standards
 
 # Flags for compiling 
-CFLAGS := -O3 $(STD) $(STACK) $(WARNS)
+CFLAGS = -O3 $(STD) $(STACK) $(WARNS)
 
 # Debug options
-DEBUG := -g3 -DDEBUG=1
+DEBUG = -g3 -DDEBUG=1
 
 # Dependency libraries
-LIBS := -lm -lncurses 
+LIBS = -lm -lncurses 
 
 # %.o file names
-NAMES := $(notdir $(basename $(wildcard $(SRCDIR)/*.$(SRCEXT))))
-OBJECTS :=$(patsubst %,$(LIBDIR)/%.o,$(NAMES))
+NAMES = $(notdir $(basename $(wildcard $(SRCDIR)/*.$(SRCEXT))))
+OBJECTS =$(patsubst %,$(LIBDIR)/%.o,$(NAMES))
 
 #
 # COMPILATION RULES
