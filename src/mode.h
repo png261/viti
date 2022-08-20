@@ -1,5 +1,5 @@
-#ifndef MODE_H
-#define MODE_H
+#ifndef VIIT_MODE_H
+#define VITI_MODE_H
 
 enum MODE {
     NORMAL,
@@ -9,6 +9,6 @@ enum MODE {
     PROMPT,
 };
 
-void mode_switch(int mode);
+void mode_switch(const int mode);
 
 #endif

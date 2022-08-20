@@ -7,15 +7,18 @@
 #include "normal.h"
 #include "search.h"
 #include "util.h"
+
 #include <ncurses.h>
+
 
 extern Win *cwin;
 
 int cmode = NORMAL;
 
-void loopKey(int mode, void (*callback)(int)) {
+void loopKey(int mode, void (*callback)(const int)) 
+{
     while (1) {
-        int c = wgetch(cwin->textarea);
+        const int c = wgetch(cwin->textarea);
         callback(c);
         if (cmode != mode) {
             break; 
@@ -23,20 +26,21 @@ void loopKey(int mode, void (*callback)(int)) {
     }
 }
 
-void mode_switch(int mode) {
+void mode_switch(const int mode) 
+{
     cmode = mode;
     switch (cmode) {
     case NORMAL:
-        loopKey(NORMAL, normalMode);
+        loopKey(NORMAL, normal_mode);
         break;
     case INSERT:
-        loopKey(INSERT, insertMode);
+        loopKey(INSERT, insert_mode);
         break;
     case COMMAND:
-        commandMode();
+        command_mode();
         break;
     case SEARCH:
-        searchMode();
+        search_mode();
         break;
     }
 }

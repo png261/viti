@@ -2,7 +2,8 @@
 
 #include <ncurses.h>
 
-void color_init() {
+void color_init() 
+{
     start_color();
     init_color(COLOR_STATUSLINE_BG, 200, 200, 200);
 

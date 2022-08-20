@@ -1,6 +1,3 @@
-#include <ncurses.h>
-#include <stdlib.h>
-
 #include "buffer.h"
 #include "color.h"
 #include "cursor.h"
@@ -11,11 +8,15 @@
 
 #include "util.h"
 
+#include <ncurses.h>
+#include <stdlib.h>
+
 extern Message mess;
 extern Win *cwin;
 
 /* setup */
-void ncurses_init() {
+void ncurses_init() 
+{
     initscr();
     ESCDELAY = 10;
     raw();
@@ -23,7 +24,8 @@ void ncurses_init() {
     keypad(stdscr, TRUE);
 }
 
-void init() {
+void init() 
+{
     ncurses_init();
     color_init();
     const int mess_height = 1;
@@ -33,7 +35,8 @@ void init() {
 }
 
 /* main */
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
     init();
 
     if (argc >= 2) {

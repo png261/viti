@@ -1,10 +1,11 @@
 #include "buffer.h"
 
+#include "memory.h"
+
 #include <stdlib.h>
 
-#include "util.h"
-
-Buffer *buffer_create() {
+Buffer *buffer_create() 
+{
     Buffer *buf = xmalloc(sizeof(*buf));
     buf->line = 0;
     buf->col = 0;

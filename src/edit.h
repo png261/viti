@@ -1,17 +1,17 @@
-#ifndef EDIT_H
-#define EDIT_H
+#ifndef VITI_EDIT_H
+#define VITI_EDIT_H
 #include "buffer.h"
 #include "window.h"
 
-void append_char(int line, int col, char c);
-void append_str(int line, char *str);
-void del_char(int line, int col);
+void edit_append_char(int line, int col, const char c);
+void edit_append_str(int line, const char *str);
+void edit_del_char(int line, int col);
 
-void join_line(int line);
-void add_line(int line, char * str);
-void del_line(int line);
-void break_line(int line, int col);
+void edit_join_line(int line);
+void edit_add_line(int line, const char * str);
+void edit_del_line(int line);
+void edit_break_line(int line, int col);
 
-char * del_end(int line, int col);
-char * del_str(int line, int start, int end); 
+char * edit_del_end(int line, int col);
+char * edit_del_str(int line, int start, int end); 
 #endif

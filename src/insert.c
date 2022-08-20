@@ -11,7 +11,7 @@
 
 extern Win *cwin;
 
-void insertMode(int c) {
+void insert_mode(const int c) {
     switch (c) {
     /* move */
     case KEY_LEFT:
@@ -32,10 +32,10 @@ void insertMode(int c) {
         mode_switch(NORMAL);
         break;
     case '\n':
-        if (current_col(cwin) == 0) {
-            add_line(current_line(cwin), "");
+        if (cwin->buf->col == 0) {
+            edit_add_line(cwin->buf->line, "");
         } else {
-            break_line(current_line(cwin), current_col(cwin));
+            edit_break_line(cwin->buf->line, cwin->buf->col);
             cwin->buf->col = 0;
             cwin->buf->line++;
             cursor_refresh(cwin);
@@ -43,11 +43,11 @@ void insertMode(int c) {
         break;
     case CTRL('h'):
     case KEY_BACKSPACE:
-        del_char(current_line(cwin), current_col(cwin) - 1);
+        edit_del_char(cwin->buf->line, cwin->buf->col - 1);
         cursor_left(cwin);
         break;
     default:
-        append_char(current_line(cwin), current_col(cwin), c);
+        edit_append_char(cwin->buf->line, cwin->buf->col, c);
         break;
     }
 }

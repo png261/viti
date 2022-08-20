@@ -1,5 +1,5 @@
-#ifndef MESS_H
-#define MESS_H
+#ifndef VIIT_MESS_H
+#define VITI_MESS_H
 #include <ncurses.h>
 
 typedef struct message{
@@ -8,6 +8,6 @@ typedef struct message{
 } Message;
 
 void mess_send(const char *format, ...);
-char *prompt(const char *format, void (*callback)(char *, int));
+char *prompt(const char *format, void (*callback)(const char *, int));
 
 #endif

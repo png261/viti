@@ -7,12 +7,16 @@
 #include "search.h"
 #include "stdlib.h"
 #include "util.h"
+#include "memory.h"
+
 #include <string.h>
+
 
 Win *cwin;
 extern char *search_query;
 
-void win_scroll(Win *win) {
+void win_scroll(Win *win) 
+{
     Buffer *buf = win->buf;
     Row *row = current_row(win);
 
@@ -39,23 +43,28 @@ void win_scroll(Win *win) {
 }
 
 
-int current_line(Win *win) {
+int current_line(Win *win)
+{
     return win->buf->line; 
 }
 
-int current_col(Win *win) {
+int current_col(Win *win) 
+{
     return win->buf->col; 
 }
 
-int buffer_progress(Win *win) {
+int buffer_progress(Win *win)
+{
     return (int)((float)(win->buf->line + 1) / win->buf->file.lines * 100);
 }
 
-Row *current_row(Win *win) { 
+Row *current_row(Win *win) 
+{ 
     return &win->buf->rows[win->buf->line];
 }
 
-Win *win_create(Buffer *buf, int height, int width, int y, int x) {
+Win *win_create(Buffer *buf, const int height, const int width, const int y, const int x) 
+{
     Win *win = xmalloc(sizeof(*win));
 
     if (buf == NULL) {
@@ -82,7 +91,8 @@ Win *win_create(Buffer *buf, int height, int width, int y, int x) {
     return win;
 }
 
-void print_rows(Win *win) {
+void print_rows(Win *win)
+{
     Buffer *buf = win->buf;
     for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
         Row *row = &buf->rows[win->view.yoff + y];
@@ -91,7 +101,8 @@ void print_rows(Win *win) {
     }
 }
 
-void win_update_highlight(Win *win) {
+void win_update_highlight(Win *win) 
+{
     if (!is_highlight || search_query == NULL) {
         return;
     }
@@ -102,7 +113,8 @@ void win_update_highlight(Win *win) {
     }
 }
 
-void win_render_rows(Win *win) {
+void win_render_rows(Win *win) 
+{
     wclear(win->textarea);
 
     print_rows(win);
@@ -112,7 +124,8 @@ void win_render_rows(Win *win) {
     wrefresh(win->textarea);
 }
 
-void relative_number(Win *win, int y) {
+void relative_number(Win *win, int y) 
+{
     char num[20];
     if (y == win->buf->line - win->view.yoff) {
         sprintf(num, "%d", y + win->view.yoff + 1);
@@ -124,7 +137,8 @@ void relative_number(Win *win, int y) {
     mvwaddstr(win->numbercol, y, 2, num);
 }
 
-void win_render_numbercol(Win *win) {
+void win_render_numbercol(Win *win) 
+{
     Buffer *buf = win->buf;
     wclear(win->numbercol);
     wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
@@ -141,7 +155,8 @@ void win_render_numbercol(Win *win) {
     wrefresh(win->numbercol);
 }
 
-void win_render_statusline(Win *win) {
+void win_render_statusline(Win *win) 
+{
     Buffer *buf = win->buf;
     werase(win->statusline);
     wbkgd(win->statusline, COLOR_PAIR(PAIR_STATUSLINE));
@@ -162,7 +177,8 @@ void win_render_statusline(Win *win) {
     wrefresh(win->statusline);
 }
 
-void win_render(Win *win) {
+void win_render(Win *win) 
+{
     win_render_numbercol(win);
     win_render_rows(win);
     win_render_statusline(win);

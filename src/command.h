@@ -1,6 +1,6 @@
-#ifndef COMMAND_H
-#define COMMAND_H
+#ifndef VITI_COMMAND_H
+#define VITI_COMMAND_H
 
-void commandMode();
+void command_mode();
 
 #endif

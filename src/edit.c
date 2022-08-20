@@ -3,13 +3,16 @@
 #include "mess.h"
 #include "window.h"
 #include "util.h"
+#include "memory.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 extern Win *cwin;
 
 /* char */
-void append_char(int line, int col, char c) {
+void edit_append_char(int line, int col, const char c)
+{
     Row *row = &cwin->buf->rows[line];
     if (col < 0 || col > row->size) {
         col = row->size;
@@ -23,10 +26,10 @@ void append_char(int line, int col, char c) {
     cursor_right(cwin);
 }
 
-void del_char(int line, int col) {
+void edit_del_char(int line, int col) {
     Row *row = &cwin->buf->rows[line];
     if (col < 0) {
-        join_line(line);
+        edit_join_line(line);
         return;
     }
 
@@ -36,21 +39,21 @@ void del_char(int line, int col) {
 }
 
 /* line */
-char *get_substring(char *str, int start, int len) {
+char *edit_get_substring(const char *str, int start, int len) {
     char *substr = xmalloc((len) * sizeof(*substr));
     memcpy(substr, &str[start], len);
     substr[len] = '\0';
     return substr;
 }
 
-char *del_str(int line, int start, int end) {
+char *edit_del_str(int line, int start, int end) {
     Row *row = &cwin->buf->rows[line];
     if (start < 0 || end > row->size) {
         return NULL;
     }
 
     int len = end - start + 1;
-    char *deleted_str = get_substring(row->content, start, len);
+    char *deleted_str = edit_get_substring(row->content, start, len);
 
     if (start < end) {
         memmove(&row->content[start], &row->content[end], strlen(row->content) - len);
@@ -59,10 +62,11 @@ char *del_str(int line, int start, int end) {
     row->size -= len;
     win_render_rows(cwin);
     cursor_refresh(cwin);
+
     return deleted_str;
 }
 
-void add_line(int line, char *str) {
+void edit_add_line(int line, const char *str) {
     Buffer *buf = cwin->buf;
     buf->rows = xrealloc(buf->rows, (buf->file.lines + 1) * sizeof(*buf->rows));
 
@@ -83,7 +87,7 @@ void add_line(int line, char *str) {
     cursor_refresh(cwin);
 }
 
-void del_line(int line) {
+void edit_del_line(int line) {
     Buffer *buf = cwin->buf;
     if (line < 0 || line >= buf->file.lines) {
         return;
@@ -94,7 +98,7 @@ void del_line(int line) {
     buf->file.lines--;
 }
 
-void append_line(int line, char *str) {
+void edit_append_line(int line, const char *str) {
     Row *row = &cwin->buf->rows[line];
     const int len = strlen(str);
     row->content = xrealloc(row->content, strlen(row->content) + len + 1);
@@ -103,7 +107,7 @@ void append_line(int line, char *str) {
     row->content[row->size] = '\0';
 }
 
-void join_line(int line) {
+void edit_join_line(int line) {
     Row *row = &cwin->buf->rows[line];
     if (line == 0) {
         return;
@@ -112,19 +116,19 @@ void join_line(int line) {
     cwin->buf->col = (row - 1)->size + 1;
     cwin->buf->line = line - 1;
 
-    append_line(line - 1, row->content);
-    del_line(line);
+    edit_append_line(line - 1, row->content);
+    edit_del_line(line);
 
     win_render_rows(cwin);
     cursor_refresh(cwin);
 }
 
-char *del_end(int line, int col) {
+char *edit_del_end(int line, int col) {
     Row *row = &cwin->buf->rows[line];
-    return del_str(line, col, row->size - 1);
+    return edit_del_str(line, col, row->size - 1);
 }
 
-void break_line(int line, int col) {
-    char *str = del_end(line, col);
-    add_line(line + 1, str);
+void edit_break_line(int line, int col) {
+    const char *str = edit_del_end(line, col);
+    edit_add_line(line + 1, str);
 }

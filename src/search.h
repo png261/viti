@@ -1,5 +1,5 @@
-#ifndef SEARCH_H
-#define SEARCH_H
+#ifndef VITI_SEARCH_H
+#define VITI_SEARCH_H
 #include "window.h"
 
 #ifndef TYPEDEF_WIN
@@ -16,7 +16,7 @@ extern char *search_query;
 extern int matched_index;
 extern int matched_count;
 
-void searchMode();
+void search_mode();
 void search_next();
 void search_prev();
 void search(Win * win, const char * query);

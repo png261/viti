@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void die(const char *errstr, ...) {
+
+void die(const char *errstr, ...) 
+{
     clear();
     endwin();
 
@@ -17,36 +19,10 @@ void die(const char *errstr, ...) {
     exit(1);
 }
 
-void quit() {
+void quit() 
+{
     clear();
     endwin();
     exit(0);
 }
 
-void *xrealloc(void *p, size_t len) {
-    if (!(p = realloc(p, len))) {
-        die("realloc: %s\n", strerror(errno));
-    }
-
-    return p;
-}
-
-void *xcalloc(size_t n, size_t len) {
-    void *p;
-
-    if (!(p = calloc(n, len))) {
-        die("calloc: %s\n", strerror(errno));
-    }
-
-    return p;
-}
-
-void *xmalloc(size_t len) {
-    void *p;
-
-    if (!(p = malloc(len))) {
-        die("malloc: %s\n", strerror(errno));
-    }
-
-    return p;
-}

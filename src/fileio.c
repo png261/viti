@@ -2,10 +2,12 @@
 
 #include "mess.h"
 #include "util.h"
+#include "memory.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-int countLines(char *filename) {
+int countLines(const char *filename) {
     FILE *fp = fopen(filename, "r");
     char *line = NULL;
     size_t linecap = 0;
@@ -25,12 +27,12 @@ size_t trim(char *str) {
     return strlen(str);
 }
 
-void file_save(Buffer *buf) {
-    if (buf->file.name == NULL) {
+void file_save(const char *filename, Buffer *buf) {
+    if (filename == NULL) {
         mess_send("No file name");
         return;
     }
-    FILE *fp = fopen(buf->file.name, "w+");
+    FILE *fp = fopen(filename, "w+");
 
     for (int y = 0; y < buf->file.lines; y++) {
         Row *row = &buf->rows[y];
@@ -45,7 +47,7 @@ void file_save(Buffer *buf) {
     fclose(fp);
 }
 
-void file_open(char *filename, Buffer *buf) {
+void file_open(const char *filename, Buffer *buf) {
     FILE *fp = fopen(filename, "r");
     buf->file.name = filename;
 

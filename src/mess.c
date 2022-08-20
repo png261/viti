@@ -2,15 +2,19 @@
 
 #include "util.h"
 #include "window.h"
+#include "memory.h"
+
 #include <ncurses.h>
 #include <stdarg.h>
 #include <stdlib.h>
+
 
 Message mess;
 
 extern Win *cwin;
 
-void mess_send(const char *format, ...) {
+void mess_send(const char *format, ...) 
+{
     wclear(mess.win);
     va_list ap;
     va_start(ap, format);
@@ -22,7 +26,8 @@ void mess_send(const char *format, ...) {
     touchwin(cwin->textarea);
 }
 
-char *prompt(const char *format, void (*callback)(char *, int)) {
+char *prompt(const char *format, void (*callback)(const char *, int)) 
+{
     size_t size = 128;
     char *str = xmalloc(size);
     size_t strlen = 0;

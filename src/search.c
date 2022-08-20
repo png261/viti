@@ -1,16 +1,18 @@
 #include "search.h"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
 #include "util.h"
+#include "memory.h"
 #include "highlight.h"
 #include "mess.h"
 #include "mode.h"
 #include "window.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 
 /* extern */
 extern Win *cwin;
@@ -26,7 +28,8 @@ char *search_query = NULL;
 Pos *match_list_old;
 char *search_query_old;
 
-void search_callback(char *query, int c) {
+void search_callback(const char *query, const int c) 
+{
     if (!strlen(query)) {
         win_render_rows(cwin);
         return;
@@ -48,7 +51,8 @@ void search_callback(char *query, int c) {
     search(cwin, query);
 }
 
-void searchMode() {
+void search_mode() 
+{
     match_list_old = match_list;
     search_query_old = search_query;
 
@@ -57,7 +61,8 @@ void searchMode() {
     mode_switch(NORMAL);
 }
 
-void search_move() {
+void search_move() 
+{
     Pos *matched = &match_list[match_index];
     if (match_count == 0 || matched == NULL) {
         return;
@@ -70,7 +75,8 @@ void search_move() {
     cursor_refresh(cwin);
 }
 
-int  search_count(Win * win, const char * query){
+int  search_count(Win * win, const char * query)
+{
     Buffer *buf = win->buf;
     const int len = strlen(query);
     int count = 0;
@@ -88,7 +94,8 @@ int  search_count(Win * win, const char * query){
 
 }
 
-void search(Win *win, const char *query) {
+void search(Win *win, const char *query) 
+{
     if (!strlen(query)) {
         return;
     }
@@ -125,7 +132,8 @@ void search(Win *win, const char *query) {
     search_move();
 }
 
-void search_next() {
+void search_next() 
+{
     if (match_list == NULL || match_count == 0) {
         return;
     }
@@ -134,7 +142,8 @@ void search_next() {
     search_move();
 }
 
-void search_prev() {
+void search_prev() 
+{
     if (match_list == NULL || match_count == 0) {
         return;
     }

@@ -1,9 +1,10 @@
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef VITI_COLOR_H
+#define VITI_COLOR_H
 
 #define COLOR_BG COLOR_BLACK
 
-enum PAIR_COLOR {
+enum PAIR_COLOR 
+{
     PAIR_NUMBERCOL = 1,
     PAIR_STATUSLINE,
     PAIR_HIGHLIGHT,
@@ -11,5 +12,6 @@ enum PAIR_COLOR {
 };
 
 void color_init();
+
 #endif
 
