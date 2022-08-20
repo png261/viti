@@ -3,7 +3,7 @@
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
-#include "file_io.h"
+#include "fileio.h"
 #include "mess.h"
 #include "mode.h"
 #include "search.h"
@@ -30,6 +30,16 @@ void normalMode(int c) {
     case KEY_UP:
     case 'k':
         cursor_up(cwin);
+        break;
+    case 'G':
+        cwin->buf->line = cwin->buf->file.lines;
+        win_scroll(cwin);
+        break;
+    case 'g':
+        if (getch() == 'g') {
+            cwin->buf->line = 0;
+            win_scroll(cwin);
+        }
         break;
     /* search */
     case 'n':

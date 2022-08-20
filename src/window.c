@@ -12,6 +12,33 @@
 Win *cwin;
 extern char *search_query;
 
+void win_scroll(Win *win) {
+    Buffer *buf = win->buf;
+    Row *row = current_row(win);
+
+    LIMIT(buf->col, 0, row->size);
+    LIMIT(buf->line, 0, buf->file.lines - 1);
+
+    if (buf->col < win->view.xoff) {
+        win->view.xoff = buf->col;
+        win_render_rows(win);
+    }
+    if (buf->col >= win->view.xoff + win->view.x) {
+        win->view.xoff = buf->col - win->view.x + 1;
+        win_render_rows(win);
+    }
+
+    if (buf->line < win->view.yoff) {
+        win->view.yoff = buf->line;
+        win_render_rows(win);
+    }
+    if (buf->line >= win->view.yoff + win->view.y) {
+        win->view.yoff = buf->line - win->view.y + 1;
+        win_render_rows(win);
+    }
+}
+
+
 int current_line(Win *win) {
     return win->buf->line; 
 }
@@ -80,25 +107,26 @@ void win_render_rows(Win *win) {
 
     print_rows(win);
     win_update_highlight(win);
+    cursor_refresh(win);
 
     wrefresh(win->textarea);
 }
 
 void relative_number(Win *win, int y) {
     char num[20];
-    if (y == win->buf->line) {
+    if (y == win->buf->line - win->view.yoff) {
         sprintf(num, "%d", y + win->view.yoff + 1);
         mvwaddstr(win->numbercol, y, 0, num);
+        return;
+    } 
 
-    } else {
-        sprintf(num, "%d", abs(win->buf->line - y));
-        mvwaddstr(win->numbercol, y, 2, num);
-    }
+    sprintf(num, "%d", abs(win->buf->line - win-> view.yoff - y));
+    mvwaddstr(win->numbercol, y, 2, num);
 }
 
 void win_render_numbercol(Win *win) {
     Buffer *buf = win->buf;
-    werase(win->numbercol);
+    wclear(win->numbercol);
     wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->view.y; y++) {

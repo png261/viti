@@ -4,7 +4,7 @@
 #include "buffer.h"
 #include "color.h"
 #include "cursor.h"
-#include "file_io.h"
+#include "fileio.h"
 #include "mess.h"
 #include "mode.h"
 #include "window.h"

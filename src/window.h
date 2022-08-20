@@ -38,6 +38,8 @@ void win_render_numbercol(Win * win);
 void win_render_rows(Win * win); 
 void win_render_statusline(Win * buf); 
 
+void win_scroll(Win *win);
+
 int current_line(Win *win); 
 int current_col(Win *win); 
 int buffer_progress(Win *win); 

@@ -1,5 +1,5 @@
-#ifndef FILE_IO_H
-#define FILE_IO_H
+#ifndef FILEIO_H
+#define FILEIO_H
 #include "buffer.h"
 
 #ifndef TYPEDEF_BUFFER

@@ -19,5 +19,5 @@ extern int matched_count;
 void searchMode();
 void search_next();
 void search_prev();
-void search(Win * win, char * query);
+void search(Win * win, const char * query);
 #endif

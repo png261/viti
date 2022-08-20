@@ -40,8 +40,8 @@ void search_callback(char *query, int c) {
         win_render_rows(cwin);
         return;
     } else if (c == '\n') {
-        /* free(matched_list_old); */
         /* free(search_query_old); */
+        /* free(matched_list_old); */
         return;
     }
 
@@ -58,17 +58,37 @@ void searchMode() {
 }
 
 void search_move() {
-    if (!matched_count) {
+    Pos *matched = &matched_list[matched_index];
+    if (matched_count == 0 || matched == NULL) {
         return;
     }
-    Pos *matched = &matched_list[matched_index];
+
+    mess_send("/%s [%d/%d]", search_query, matched_index, matched_count);
     cwin->buf->col = matched->x;
     cwin->buf->line = matched->y;
-    handleScroll(cwin);
+    win_scroll(cwin);
     cursor_refresh(cwin);
 }
 
-void search(Win *win, char *query) {
+int  search_count(Win * win, const char * query){
+    Buffer *buf = win->buf;
+    const int len = strlen(query);
+    int count = 0;
+    for (int y = 0; y < buf->file.lines; y++) {
+        Row *row = &buf->rows[y];
+        char *match = row->content;
+
+        while ((match = strstr(match, query)) != NULL) {
+            count++;
+            match += len;
+        }
+    }
+
+    return count; 
+
+}
+
+void search(Win *win, const char *query) {
     if (!strlen(query)) {
         return;
     }
@@ -76,25 +96,28 @@ void search(Win *win, char *query) {
     search_query = query;
     matched_index = 0;
 
-    matched_list = xmalloc(sizeof(*matched_list));
-    Pos *matched = matched_list;
 
     Buffer *buf = win->buf;
-    matched_count = 0;
-    const int len = strlen(query);
 
-    /* find all postions */
+    /* count the pos  */
+    matched_count = search_count(win, query);
+    if(matched_count == 0) { 
+        win_render_rows(cwin);
+        return;
+    }
+
+    /* find all pos */
+    const int len = strlen(query);
+    matched_list = xrealloc(matched_list, matched_count * sizeof(*matched_list));
+    Pos *pos = matched_list;
     for (int y = 0; y < buf->file.lines; y++) {
         Row *row = &buf->rows[y];
-        char *match = row -> content;
+        char *match = row->content;
+
         while ((match = strstr(match, query)) != NULL) {
-            matched->x = match - row->content;
-            matched->y = y;
-            matched_count++;
-
-            matched_list = xrealloc(matched_list, (matched_count + 1) * sizeof(*matched_list));
-            matched++;
-
+            pos->x = match - row->content;
+            pos->y = y;
+            pos++;
             match += len;
         }
     }

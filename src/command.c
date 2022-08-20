@@ -1,6 +1,6 @@
 #include "command.h"
 
-#include "file_io.h"
+#include "fileio.h"
 #include "mess.h"
 #include "mode.h"
 #include "search.h"
