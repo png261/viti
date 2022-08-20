@@ -18,8 +18,8 @@ void edit_append_char(int line, int col, const char c)
         col = row->size;
     }
 
-    row->content = xrealloc(row->content, strlen(row->content) + 1);
-    memmove(&row->content[col + 1], &row->content[col], strlen(row->content) - col);
+    row->content = xrealloc(row->content, row->size + 1);
+    memmove(&row->content[col + 1], &row->content[col], row->size - col);
     row->content[col] = c;
     row->size++;
     win_render_rows(cwin);
@@ -33,7 +33,7 @@ void edit_del_char(int line, int col) {
         return;
     }
 
-    memmove(&row->content[col], &row->content[col + 1], strlen(row->content) - col);
+    memmove(&row->content[col], &row->content[col + 1], row->size - col);
     row->size--;
     win_render_rows(cwin);
 }
@@ -56,7 +56,7 @@ char *edit_del_str(int line, int start, int end) {
     char *deleted_str = edit_get_substring(row->content, start, len);
 
     if (start < end) {
-        memmove(&row->content[start], &row->content[end], strlen(row->content) - len);
+        memmove(&row->content[start], &row->content[end], row->size - len);
     }
 
     row->size -= len;
@@ -101,7 +101,7 @@ void edit_del_line(int line) {
 void edit_append_line(int line, const char *str) {
     Row *row = &cwin->buf->rows[line];
     const int len = strlen(str);
-    row->content = xrealloc(row->content, strlen(row->content) + len + 1);
+    row->content = xrealloc(row->content, row->size + len + 1);
     memcpy(&row->content[row->size], str, len);
     row->size += len;
     row->content[row->size] = '\0';
