@@ -17,13 +17,13 @@ extern Win *cwin;
 extern int is_highlight;
 
 /* export var */
-int matched_index = 0;
-int matched_count = 0;
-Pos *matched_list = NULL;
+int match_index = 0;
+int match_count = 0;
+Pos *match_list = NULL;
 char *search_query = NULL;
 
 /* local var */
-Pos *matched_list_old;
+Pos *match_list_old;
 char *search_query_old;
 
 void search_callback(char *query, int c) {
@@ -32,16 +32,16 @@ void search_callback(char *query, int c) {
         return;
     }
     if (c == '\x1b') {
-        /* free(search_query); */
-        /* free(matched_list); */
+        free(search_query);
+        free(match_list);
 
-        matched_list = matched_list_old;
+        match_list = match_list_old;
         search_query = search_query_old;
         win_render_rows(cwin);
         return;
     } else if (c == '\n') {
         /* free(search_query_old); */
-        /* free(matched_list_old); */
+        /* free(match_list_old); */
         return;
     }
 
@@ -49,7 +49,7 @@ void search_callback(char *query, int c) {
 }
 
 void searchMode() {
-    matched_list_old = matched_list;
+    match_list_old = match_list;
     search_query_old = search_query;
 
     is_highlight = 1;
@@ -58,12 +58,12 @@ void searchMode() {
 }
 
 void search_move() {
-    Pos *matched = &matched_list[matched_index];
-    if (matched_count == 0 || matched == NULL) {
+    Pos *matched = &match_list[match_index];
+    if (match_count == 0 || matched == NULL) {
         return;
     }
 
-    mess_send("/%s [%d/%d]", search_query, matched_index, matched_count);
+    mess_send("/%s [%d/%d]", search_query, match_index, match_count);
     cwin->buf->col = matched->x;
     cwin->buf->line = matched->y;
     win_scroll(cwin);
@@ -94,22 +94,22 @@ void search(Win *win, const char *query) {
     }
 
     search_query = query;
-    matched_index = 0;
+    match_index = 0;
 
 
     Buffer *buf = win->buf;
 
     /* count the pos  */
-    matched_count = search_count(win, query);
-    if(matched_count == 0) { 
+    match_count = search_count(win, query);
+    if(match_count == 0) { 
         win_render_rows(cwin);
         return;
     }
 
     /* find all pos */
     const int len = strlen(query);
-    matched_list = xrealloc(matched_list, matched_count * sizeof(*matched_list));
-    Pos *pos = matched_list;
+    match_list = xrealloc(match_list, match_count * sizeof(*match_list));
+    Pos *pos = match_list;
     for (int y = 0; y < buf->file.lines; y++) {
         Row *row = &buf->rows[y];
         char *match = row->content;
@@ -126,19 +126,19 @@ void search(Win *win, const char *query) {
 }
 
 void search_next() {
-    if (matched_list == NULL || matched_count == 0) {
+    if (match_list == NULL || match_count == 0) {
         return;
     }
 
-    matched_index = (matched_index + 1) % matched_count;
+    match_index = (match_index + 1) % match_count;
     search_move();
 }
 
 void search_prev() {
-    if (matched_list == NULL || matched_count == 0) {
+    if (match_list == NULL || match_count == 0) {
         return;
     }
 
-    matched_index = abs(matched_count + matched_index - 1) % matched_count;
+    match_index = abs(match_count + match_index - 1) % match_count;
     search_move();
 }

@@ -7,16 +7,17 @@
 # Put here your project name. It will create a root directory with this name
 #
 
-PROJECT_NAME := viti
-
+PROJECT_NAME = viti
 
 #
 # Put here the binary file name. The compilation will result in that binary
 #
-BINARY := binary
+BINARY = binary
 
 
 #
 # The project directory. At this path we will start the project
 #
-PROJECT_PATH := $(PWD)
+PROJECT_PATH = $(PWD)
+
+PREFIX = /usr/local

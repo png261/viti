@@ -1,18 +1,18 @@
-# Includes the project configurations
-include project.conf
+# Includes the config.mk igurations
+include config.mk
 
 #
-# Validating project variables defined in project.conf
+# Validating project variables defined in config.mk
 #
 
 ifndef PROJECT_NAME
-$(error Missing PROJECT_NAME. Put variables at project.conf file)
+$(error Missing PROJECT_NAME. Put variables at config.mk file)
 endif
 ifndef BINARY
-$(error Missing BINARY. Put variables at project.conf file)
+$(error Missing BINARY. Put variables at config.mk file)
 endif
 ifndef PROJECT_PATH
-$(error Missing PROJECT_PATH. Put variables at project.conf file)
+$(error Missing PROJECT_PATH. Put variables at config.mk file)
 endif
 
 
@@ -98,11 +98,26 @@ run:
 clean:
 	@rm -rvf $(BINDIR)/* $(LIBDIR)/* $(LOGDIR)/*;
 
+# Install
+install: all
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	cp -f $(BINDIR)/$(BINARY) ${DESTDIR}${PREFIX}/bin/$(PROJECT_NAME)
+	chmod 755 ${DESTDIR}${PREFIX}/bin/$(PROJECT_NAME)
+	@echo -en "$(BROWN)-- YAH! VITI HAS BEEN INSTALLED! --$(END_COLOR)\n"
+
+# Uninstall
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/$(PROJECT_NAME)
+	@echo -en "$(BROWN)-- UNINSTALLED VITI! --$(END_COLOR)\n"
+
+# Help
 help:
 	@echo "VITI TEXTEDITOR"
 	@echo
 	@echo "Target rules:"
-	@echo "    all      - Compiles and generates binary file"
-	@echo "    run      - run binary file"
-	@echo "    clean    - Clean the project by removing binaries"
-	@echo "    help     - Prints a help message with target rules"
+	@echo "    all          - Compiles and generates binary file"
+	@echo "    install      - Compiles and install binary file"
+	@echo "    uninstall    - uninstall binary file"
+	@echo "    run          - run binary file"
+	@echo "    clean        - Clean the project by removing binaries"
+	@echo "    help         - Prints a help message with target rules"
