@@ -11,6 +11,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+
 extern Message mess;
 extern Win *cwin;
 

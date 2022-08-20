@@ -9,6 +9,7 @@
 #include "util.h"
 #include "window.h"
 
+
 extern Win *cwin;
 
 void insert_mode(const int c) {

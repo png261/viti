@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 int countLines(const char *filename) {
     FILE *fp = fopen(filename, "r");
     char *line = NULL;

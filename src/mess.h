@@ -1,5 +1,6 @@
 #ifndef VIIT_MESS_H
 #define VITI_MESS_H
+
 #include <ncurses.h>
 
 typedef struct message{

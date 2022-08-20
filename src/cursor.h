@@ -14,5 +14,6 @@ void cursor_left(Win * win);
 void cursor_right(Win * win);
 void cursor_up(Win * win);
 void cursor_down(Win * win);
+
 #endif
 

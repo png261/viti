@@ -5,6 +5,7 @@
 
 #include <string.h>
 
+
 int is_highlight = true;
 
 void highlight_row(Win *win, int line, const char *query, int color_pair) {

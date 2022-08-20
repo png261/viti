@@ -6,6 +6,7 @@
 
 #include <ncurses.h>
 
+
 #ifndef TYPEDEF_BUFFER
 #define TYPEDEF_BUFFER
     typedef struct buffer Buffer;

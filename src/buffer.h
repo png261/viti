@@ -2,7 +2,7 @@
 #define VITI_BUFFER_H
 #include "window.h"
 
-typedef struct File{
+typedef struct File {
     char * name;
     int lines;
 } File;
