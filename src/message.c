@@ -13,6 +13,13 @@ Message mess;
 
 extern Win *curwin;
 
+void mess_resize(){
+    wresize(mess.win, 1, COLS);
+    mvwin(mess.win, LINES - 1, 0);
+    wrefresh(mess.win);
+    refresh();
+}
+
 void mess_send(const char *format, ...) 
 {
     wclear(mess.win);

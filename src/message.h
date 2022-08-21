@@ -8,6 +8,7 @@ typedef struct message{
     WINDOW *win;
 } Message;
 
+void mess_resize();
 void mess_send(const char *format, ...);
 char *prompt(const char *format, void (*callback)(const char *, int));
 

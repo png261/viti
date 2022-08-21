@@ -31,6 +31,7 @@ void command_mode()
     } else if (sscanf(query, "w %s", filename) == 1) {
         curwin->buf->file.name = filename;
         file_save(filename, curwin->buf);
+        win_render_statusline(curwin);
     }
 
     mode_switch(MODE_NORMAL);

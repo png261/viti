@@ -28,6 +28,7 @@ char *search_query = NULL;
 Pos *match_list_old;
 char *search_query_old;
 
+/* TODO free */
 void search_callback(const char *query, const int c) 
 {
     if (strlen(query) == 0) {
@@ -35,16 +36,11 @@ void search_callback(const char *query, const int c)
         return;
     }
     if (c == '\x1b') {
-        free(search_query);
-        free(match_list);
-
         match_list = match_list_old;
         search_query = search_query_old;
         win_render_rows(curwin);
         return;
     } else if (c == '\n') {
-        free(search_query_old);
-        free(match_list_old);
         search_query_old = NULL;
         match_list_old = NULL;
         return;

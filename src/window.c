@@ -10,6 +10,7 @@
 #include "memory.h"
 
 #include <string.h>
+#include <panel.h>
 
 
 Win *curwin;
@@ -61,6 +62,24 @@ int buffer_progress(Win *win)
 Row *current_row(Win *win) 
 { 
     return &win->buf->rows[win->buf->line];
+}
+
+Win *win_resize(Win * win, const int height, const int width)
+{
+    const int size_statusline = 1;
+    const int size_numbercol = 6;
+    win->view.x = width - size_numbercol;
+    win->view.y = height - size_statusline;
+    wresize(win->textarea, win->view.y, win->view.x );
+    wresize(win->numbercol, win->view.y, size_numbercol);
+    wresize(win->statusline, size_statusline, width);
+
+    mvwin(win->textarea, 0, size_numbercol);
+    mvwin(win->statusline, LINES - 2, 0);
+
+    wrefresh(win->textarea);
+    wrefresh(win->numbercol);
+    wrefresh(win->statusline);
 }
 
 Win *win_create(Buffer *buf, const int height, const int width, const int y, const int x) 
@@ -125,6 +144,7 @@ void win_render_line(Win * win, int line){
     }
 
     win_clear_line(win, line);
+
     int len = MIN(MAX(row->size - win->view.xoff, 0), win->view.x);
     mvwaddnstr(win->textarea, line - win->view.yoff, 0, &row->content[win->view.xoff], len);
     win_scroll(win);

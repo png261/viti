@@ -45,7 +45,6 @@ void insert_mode(const int c) {
     case CTRL('h'):
     case KEY_BACKSPACE:
         edit_del_char(curwin->buf->line, curwin->buf->col - 1);
-        cursor_left(curwin);
         break;
     default:
         edit_append_char(curwin->buf->line, curwin->buf->col, c);

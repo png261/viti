@@ -1,6 +1,7 @@
 #include "fileio.h"
 
 #include "message.h"
+#include "window.h"
 #include "util.h"
 #include "memory.h"
 
@@ -55,7 +56,6 @@ void file_open(const char *filename, Buffer *buf) {
     buf->file.name = filename;
 
     if (fp == NULL) {
-        fclose(fp);
         return;
     }
 

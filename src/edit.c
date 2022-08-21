@@ -43,6 +43,7 @@ void edit_del_char(int line, int col) {
 
     memmove(&row->content[col], &row->content[col + 1], row->size - col);
     row->size--;
+    curwin->buf->col--;
     win_render_line(curwin, line);
 }
 
@@ -112,6 +113,7 @@ void edit_del_line(int line) {
 
     free(row->content);
     row->content = NULL;
+
     memmove(row, row + 1, sizeof(Row) * (buf->file.lines - line - 1));
     buf->file.lines--;
     win_render_rows(curwin);
@@ -137,9 +139,15 @@ void edit_join_line(int line) {
         return;
     }
 
+    if(line == 0 && row->size <= 0) {
+        edit_del_line(line);
+        return;
+    }
+
     if (line == 0) {
         return;
     }
+
 
     curwin->buf->col = (row - 1)->size + 1;
     curwin->buf->line = line - 1;

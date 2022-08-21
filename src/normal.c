@@ -36,12 +36,22 @@ void normal_mode(const int c)
     case 'G':
         curwin->buf->line = curwin->buf->file.lines;
         win_scroll(curwin);
+        cursor_refresh(curwin);
         break;
     case 'g':
         if (getch() == 'g') {
             curwin->buf->line = 0;
             win_scroll(curwin);
+            cursor_refresh(curwin);
         }
+        break;
+    case '0':
+        curwin->buf->col = 0;
+        cursor_refresh(curwin);
+        break;
+    case '$':
+        curwin->buf->col = current_row(curwin)->size;
+        cursor_refresh(curwin);
         break;
     /* search */
     case 'n':

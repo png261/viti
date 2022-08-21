@@ -2,6 +2,7 @@
 
 #include "buffer.h"
 #include "command.h"
+#include "window.h"
 #include "insert.h"
 #include "message.h"
 #include "normal.h"
@@ -18,7 +19,17 @@ enum MODE State = MODE_NORMAL;
 void loopKey(enum MODE mode, void (*callback)(const int)) 
 {
     while (1) {
-        callback(getch());
+        int c = getch();
+        if(c == KEY_RESIZE){
+            /* TODO: resize all windows when have mutil */
+            win_resize(curwin, LINES - 1, COLS);
+            mess_resize();
+            refresh();
+            win_render(curwin);
+            continue;
+        }
+
+        callback(c);
         if (State != mode) {
             break; 
         }
