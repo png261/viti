@@ -1,5 +1,6 @@
 #ifndef VITI_FILEIO_H
 #define VITI_FILEIO_H
+
 #include "buffer.h"
 
 #ifndef TYPEDEF_BUFFER

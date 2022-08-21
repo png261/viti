@@ -1,6 +1,6 @@
 #include "fileio.h"
 
-#include "mess.h"
+#include "message.h"
 #include "util.h"
 #include "memory.h"
 
@@ -16,14 +16,16 @@ int countLines(const char *filename) {
     while ((getline(&line, &linecap, fp)) != -1) {
         count++;
     }
+
+    free(line);
     fclose(fp);
     return count;
 }
 
 size_t trim(char *str) {
-    char *size = str + strlen(str) - 1;
-    while (*size == '\n' || *size == ' ') {
-        *size = '\0';
+    char *c = str + strlen(str) - 1;
+    while (*c == '\n' || *c == ' ') {
+        *c = '\0';
     }
     return strlen(str);
 }
@@ -52,7 +54,8 @@ void file_open(const char *filename, Buffer *buf) {
     FILE *fp = fopen(filename, "r");
     buf->file.name = filename;
 
-    if (!fp) {
+    if (fp == NULL) {
+        fclose(fp);
         return;
     }
 
@@ -71,5 +74,7 @@ void file_open(const char *filename, Buffer *buf) {
         current->size = linelen;
         current++;
     }
+
+    free(line);
     fclose(fp);
 }

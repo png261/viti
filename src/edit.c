@@ -1,6 +1,6 @@
 #include "edit.h"
 
-#include "mess.h"
+#include "message.h"
 #include "window.h"
 #include "util.h"
 #include "memory.h"
@@ -8,26 +8,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern Win *cwin;
+extern Win *curwin;
 
 /* char */
 void edit_append_char(int line, int col, const char c)
 {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
+
     if (col < 0 || col > row->size) {
         col = row->size;
     }
 
-    row->content = xrealloc(row->content, row->size + 1);
-    memmove(&row->content[col + 1], &row->content[col], row->size - col);
+    row->content = xrealloc(row->content, row->size + 2);
+    memmove(&row->content[col + 1], &row->content[col], row->size - col + 1);
     row->content[col] = c;
     row->size++;
-    win_render_rows(cwin);
-    cursor_right(cwin);
+    curwin->buf->col++;
+    win_render_line(curwin, line);
 }
 
 void edit_del_char(int line, int col) {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
+
     if (col < 0) {
         edit_join_line(line);
         return;
@@ -35,7 +43,7 @@ void edit_del_char(int line, int col) {
 
     memmove(&row->content[col], &row->content[col + 1], row->size - col);
     row->size--;
-    win_render_rows(cwin);
+    win_render_line(curwin, line);
 }
 
 /* line */
@@ -47,7 +55,11 @@ char *edit_get_substring(const char *str, int start, int len) {
 }
 
 char *edit_del_str(int line, int start, int end) {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL){
+        return NULL;
+    }
+
     if (start < 0 || end > row->size) {
         return NULL;
     }
@@ -60,14 +72,13 @@ char *edit_del_str(int line, int start, int end) {
     }
 
     row->size -= len;
-    win_render_rows(cwin);
-    cursor_refresh(cwin);
+    win_render_line(curwin, line);
 
     return deleted_str;
 }
 
 void edit_add_line(int line, const char *str) {
-    Buffer *buf = cwin->buf;
+    Buffer *buf = curwin->buf;
     buf->rows = xrealloc(buf->rows, (buf->file.lines + 1) * sizeof(*buf->rows));
 
     if (line < buf->file.lines) {
@@ -77,54 +88,71 @@ void edit_add_line(int line, const char *str) {
 
     const int len = strlen(str);
     Row *row = &buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
     row->content = xmalloc(sizeof(str));
     memcpy(row->content, str, len);
     row->size = len;
     row->content[row->size] = '\0';
     buf->file.lines++;
-
-    win_render_rows(cwin);
-    cursor_refresh(cwin);
+    win_render_rows(curwin);
 }
 
 void edit_del_line(int line) {
-    Buffer *buf = cwin->buf;
+    Buffer *buf = curwin->buf;
+    Row *row = &buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
+
     if (line < 0 || line >= buf->file.lines) {
         return;
     }
-    Row *row = &buf->rows[line];
+
     free(row->content);
+    row->content = NULL;
     memmove(row, row + 1, sizeof(Row) * (buf->file.lines - line - 1));
     buf->file.lines--;
+    win_render_rows(curwin);
 }
 
 void edit_append_line(int line, const char *str) {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
+
     const int len = strlen(str);
     row->content = xrealloc(row->content, row->size + len + 1);
     memcpy(&row->content[row->size], str, len);
     row->size += len;
     row->content[row->size] = '\0';
+    win_render_line(curwin, line);
 }
 
 void edit_join_line(int line) {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL) {
+        return;
+    }
+
     if (line == 0) {
         return;
     }
 
-    cwin->buf->col = (row - 1)->size + 1;
-    cwin->buf->line = line - 1;
+    curwin->buf->col = (row - 1)->size + 1;
+    curwin->buf->line = line - 1;
 
     edit_append_line(line - 1, row->content);
     edit_del_line(line);
-
-    win_render_rows(cwin);
-    cursor_refresh(cwin);
 }
 
 char *edit_del_end(int line, int col) {
-    Row *row = &cwin->buf->rows[line];
+    Row *row = &curwin->buf->rows[line];
+    if(row == NULL) {
+        return NULL;
+    }
     return edit_del_str(line, col, row->size - 1);
 }
 

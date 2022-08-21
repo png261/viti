@@ -9,15 +9,22 @@
 int is_highlight = true;
 
 void highlight_row(Win *win, int line, const char *query, int color_pair) {
-    if (!strlen(query)) {
+    if (strlen(query) == 0) {
         return;
     }
 
     Row *row = &win->buf->rows[line];
+    if(row == NULL || row->size == 0) {
+        return;
+    }
+
     const int len = strlen(query);
     char *match = row->content;
+
     while ((match = strstr(match, query)) != NULL) {
-        mvwchgat(win->textarea, line - win->view.yoff, match - row->content, len, A_NORMAL, color_pair, NULL);
+        wattron(win->textarea, COLOR_PAIR(color_pair));
+        mvwaddnstr(win->textarea, line - win->view.yoff, match - row->content, match, len);
+        wattroff(win->textarea, COLOR_PAIR(color_pair));
         match += len;
     }
 }

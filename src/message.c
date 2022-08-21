@@ -1,4 +1,4 @@
-#include "mess.h"
+#include "message.h"
 
 #include "util.h"
 #include "window.h"
@@ -11,7 +11,7 @@
 
 Message mess;
 
-extern Win *cwin;
+extern Win *curwin;
 
 void mess_send(const char *format, ...) 
 {
@@ -23,7 +23,7 @@ void mess_send(const char *format, ...)
 
     waddstr(mess.win, mess.content);
     wrefresh(mess.win);
-    touchwin(cwin->textarea);
+    touchwin(curwin->textarea);
 }
 
 char *prompt(const char *format, void (*callback)(const char *, int)) 

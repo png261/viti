@@ -6,7 +6,7 @@
 #include "util.h"
 #include "memory.h"
 #include "highlight.h"
-#include "mess.h"
+#include "message.h"
 #include "mode.h"
 #include "window.h"
 
@@ -15,12 +15,12 @@
 
 
 /* extern */
-extern Win *cwin;
+extern Win *curwin;
 extern int is_highlight;
 
 /* export var */
-int match_index = 0;
-int match_count = 0;
+static int match_index = 0;
+static int match_count = 0;
 Pos *match_list = NULL;
 char *search_query = NULL;
 
@@ -30,8 +30,8 @@ char *search_query_old;
 
 void search_callback(const char *query, const int c) 
 {
-    if (!strlen(query)) {
-        win_render_rows(cwin);
+    if (strlen(query) == 0) {
+        win_render_rows(curwin);
         return;
     }
     if (c == '\x1b') {
@@ -40,15 +40,17 @@ void search_callback(const char *query, const int c)
 
         match_list = match_list_old;
         search_query = search_query_old;
-        win_render_rows(cwin);
+        win_render_rows(curwin);
         return;
     } else if (c == '\n') {
-        /* free(search_query_old); */
-        /* free(match_list_old); */
+        free(search_query_old);
+        free(match_list_old);
+        search_query_old = NULL;
+        match_list_old = NULL;
         return;
     }
 
-    search(cwin, query);
+    search(curwin, query);
 }
 
 void search_mode() 
@@ -58,7 +60,7 @@ void search_mode()
 
     is_highlight = 1;
     prompt("/%s", search_callback);
-    mode_switch(NORMAL);
+    mode_switch(MODE_NORMAL);
 }
 
 void search_move() 
@@ -69,47 +71,47 @@ void search_move()
     }
 
     mess_send("/%s [%d/%d]", search_query, match_index, match_count);
-    cwin->buf->col = matched->x;
-    cwin->buf->line = matched->y;
-    win_scroll(cwin);
-    cursor_refresh(cwin);
+    curwin->buf->col = matched->x;
+    curwin->buf->line = matched->y;
+    win_scroll(curwin);
+    cursor_refresh(curwin);
 }
 
 int  search_count(Win * win, const char * query)
 {
     Buffer *buf = win->buf;
-    const int len = strlen(query);
     int count = 0;
     for (int y = 0; y < buf->file.lines; y++) {
         Row *row = &buf->rows[y];
-        char *match = row->content;
+        if(row == NULL) {
+           break; 
+        }
 
+        char *match = row->content;
         while ((match = strstr(match, query)) != NULL) {
             count++;
-            match += len;
+            match += strlen(query);
         }
     }
 
     return count; 
-
 }
 
 void search(Win *win, const char *query) 
 {
-    if (!strlen(query)) {
+    if (strlen(query) == 0) {
         return;
     }
 
     search_query = query;
     match_index = 0;
 
-
     Buffer *buf = win->buf;
 
     /* count the pos  */
     match_count = search_count(win, query);
     if(match_count == 0) { 
-        win_render_rows(cwin);
+        win_render_rows(curwin);
         return;
     }
 
@@ -128,7 +130,7 @@ void search(Win *win, const char *query)
             match += len;
         }
     }
-    win_render_rows(cwin);
+    win_render_rows(curwin);
     search_move();
 }
 

@@ -3,7 +3,7 @@
 #include "buffer.h"
 #include "command.h"
 #include "insert.h"
-#include "mess.h"
+#include "message.h"
 #include "normal.h"
 #include "search.h"
 #include "util.h"
@@ -11,35 +11,34 @@
 #include <ncurses.h>
 
 
-extern Win *cwin;
+extern Win *curwin;
 
-int cmode = NORMAL;
+enum MODE State = MODE_NORMAL;
 
-void loopKey(int mode, void (*callback)(const int)) 
+void loopKey(enum MODE mode, void (*callback)(const int)) 
 {
     while (1) {
-        const int c = wgetch(cwin->textarea);
-        callback(c);
-        if (cmode != mode) {
+        callback(getch());
+        if (State != mode) {
             break; 
         }
     }
 }
 
-void mode_switch(const int mode) 
+void mode_switch(enum MODE mode) 
 {
-    cmode = mode;
-    switch (cmode) {
-    case NORMAL:
-        loopKey(NORMAL, normal_mode);
+    State = mode;
+    switch (State) {
+    case MODE_NORMAL:
+        loopKey(MODE_NORMAL, normal_mode);
         break;
-    case INSERT:
-        loopKey(INSERT, insert_mode);
+    case MODE_INSERT:
+        loopKey(MODE_INSERT, insert_mode);
         break;
-    case COMMAND:
+    case MODE_COMMAND:
         command_mode();
         break;
-    case SEARCH:
+    case MODE_SEARCH:
         search_mode();
         break;
     }

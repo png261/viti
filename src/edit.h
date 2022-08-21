@@ -1,5 +1,6 @@
 #ifndef VITI_EDIT_H
 #define VITI_EDIT_H
+
 #include "buffer.h"
 #include "window.h"
 
@@ -14,4 +15,5 @@ void edit_break_line(int line, int col);
 
 char * edit_del_end(int line, int col);
 char * edit_del_str(int line, int start, int end); 
+
 #endif

@@ -3,7 +3,7 @@
 #include "color.h"
 #include "buffer.h"
 #include "highlight.h"
-#include "mess.h"
+#include "message.h"
 #include "search.h"
 #include "stdlib.h"
 #include "util.h"
@@ -12,7 +12,7 @@
 #include <string.h>
 
 
-Win *cwin;
+Win *curwin;
 extern char *search_query;
 
 void win_scroll(Win *win) 
@@ -113,12 +113,32 @@ void win_update_highlight(Win *win)
     }
 }
 
+void win_clear_line(Win * win, int line){
+    wmove(win->textarea, line - win->view.yoff, 0);
+    wclrtoeol(win->textarea);
+}
+
+void win_render_line(Win * win, int line){
+    Row *row = &win->buf->rows[line];
+    if(row == NULL){
+        return; 
+    }
+
+    win_clear_line(win, line);
+    int len = MIN(MAX(row->size - win->view.xoff, 0), win->view.x);
+    mvwaddnstr(win->textarea, line - win->view.yoff, 0, &row->content[win->view.xoff], len);
+    win_scroll(win);
+    cursor_refresh(win);
+    wrefresh(win->textarea);
+}
+
 void win_render_rows(Win *win) 
 {
-    wclear(win->textarea);
+    werase(win->textarea);
 
     print_rows(win);
     win_update_highlight(win);
+    win_scroll(win);
     cursor_refresh(win);
 
     wrefresh(win->textarea);
@@ -140,7 +160,7 @@ void relative_number(Win *win, int y)
 void win_render_numbercol(Win *win) 
 {
     Buffer *buf = win->buf;
-    wclear(win->numbercol);
+    werase(win->numbercol);
     wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->view.y; y++) {
@@ -166,8 +186,9 @@ void win_render_statusline(Win *win)
 
     char lineinfo[128];
     char percentInfo[128];
-    sprintf(percentInfo, "%d%%", buffer_progress(win));
+
     sprintf(lineinfo, "%d,%d", current_line(win) + 1, buf->file.lines);
+    sprintf(percentInfo, "%d%%", buffer_progress(win));
 
     mvwaddstr(win->statusline, 0,
               COLS - strlen(lineinfo) - 5 - strlen(percentInfo), lineinfo);

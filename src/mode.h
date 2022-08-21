@@ -2,13 +2,13 @@
 #define VITI_MODE_H
 
 enum MODE {
-    NORMAL,
-    INSERT,
-    COMMAND,
-    SEARCH,
-    PROMPT,
+    MODE_NORMAL,
+    MODE_INSERT,
+    MODE_COMMAND,
+    MODE_SEARCH,
+    MODE_PROMPT,
 };
 
-void mode_switch(const int mode);
+void mode_switch(enum MODE mode);
 
 #endif

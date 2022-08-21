@@ -1,12 +1,13 @@
 #include "cursor.h"
 
 #include "buffer.h"
-#include "mess.h"
+#include "message.h"
 #include "util.h"
 #include "window.h"
 
 void cursor_refresh(Win *win)
 {
+    win_scroll(win);
     win_render_numbercol(win);
     win_render_statusline(win);
     wmove(win->textarea, win->buf->line - win->view.yoff,

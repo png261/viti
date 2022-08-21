@@ -12,6 +12,5 @@ Buffer *buffer_create()
     buf->file.lines = 1;
     buf->file.name = NULL;
     buf->rows = xmalloc(sizeof(*buf->rows));
-    buf->rows->content = xmalloc(sizeof(*buf->rows->content));
     return buf;
 }

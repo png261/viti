@@ -17,7 +17,7 @@ void *xrealloc(void *p, const size_t len)
     return p;
 }
 
-void *xcalloc(size_t n, const size_t len) 
+void *xcalloc(const size_t n, const size_t len) 
 {
     void *p;
 

@@ -4,14 +4,14 @@
 #include "cursor.h"
 #include "edit.h"
 #include "fileio.h"
-#include "mess.h"
+#include "message.h"
 #include "mode.h"
 #include "search.h"
 #include "util.h"
 #include "window.h"
 
 
-extern Win *cwin;
+extern Win *curwin;
 
 void normal_mode(const int c) 
 {
@@ -19,28 +19,28 @@ void normal_mode(const int c)
     /* move */
     case KEY_LEFT:
     case 'h':
-        cursor_left(cwin);
+        cursor_left(curwin);
         break;
     case KEY_RIGHT:
     case 'l':
-        cursor_right(cwin);
+        cursor_right(curwin);
         break;
     case KEY_DOWN:
     case 'j':
-        cursor_down(cwin);
+        cursor_down(curwin);
         break;
     case KEY_UP:
     case 'k':
-        cursor_up(cwin);
+        cursor_up(curwin);
         break;
     case 'G':
-        cwin->buf->line = cwin->buf->file.lines;
-        win_scroll(cwin);
+        curwin->buf->line = curwin->buf->file.lines;
+        win_scroll(curwin);
         break;
     case 'g':
         if (getch() == 'g') {
-            cwin->buf->line = 0;
-            win_scroll(cwin);
+            curwin->buf->line = 0;
+            win_scroll(curwin);
         }
         break;
     /* search */
@@ -53,69 +53,69 @@ void normal_mode(const int c)
     /* edit */
     case 'd':
         if (getch() == 'd') {
-            edit_del_line(current_line(cwin));
-            win_render_rows(cwin);
-            cursor_refresh(cwin);
+            edit_del_line(current_line(curwin));
+            win_render_rows(curwin);
+            cursor_refresh(curwin);
         }
         break;
     case 'D':
-        edit_del_end(current_line(cwin), current_col(cwin));
+        edit_del_end(current_line(curwin), current_col(curwin));
         break;
     case 'C':
-        edit_del_end(current_line(cwin), current_col(cwin));
-        mode_switch(INSERT);
+        edit_del_end(current_line(curwin), current_col(curwin));
+        mode_switch(MODE_INSERT);
         break;
     case 'S':
-        edit_del_str(current_line(cwin), 0, current_row(cwin)->size);
-        mode_switch(INSERT);
+        edit_del_str(current_line(curwin), 0, current_row(curwin)->size);
+        mode_switch(MODE_INSERT);
         break;
     case 'J':
-        edit_join_line(current_line(cwin) + 1);
+        edit_join_line(current_line(curwin) + 1);
         break;
     case 'x':
-        edit_del_char(current_line(cwin), current_col(cwin));
-        cursor_refresh(cwin);
+        edit_del_char(current_line(curwin), current_col(curwin));
+        cursor_refresh(curwin);
         break;
     case 'I':
-        cwin->buf->col = 0;
-        cursor_refresh(cwin);
-        mode_switch(INSERT);
+        curwin->buf->col = 0;
+        cursor_refresh(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 's':
-        edit_del_char(current_line(cwin), current_col(cwin));
-        cursor_refresh(cwin);
-        mode_switch(INSERT);
+        edit_del_char(current_line(curwin), current_col(curwin));
+        cursor_refresh(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 'a':
-        cursor_right(cwin);
-        mode_switch(INSERT);
+        cursor_right(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 'A':
-        cwin->buf->col = current_row(cwin)->size;
-        cursor_refresh(cwin);
-        mode_switch(INSERT);
+        curwin->buf->col = current_row(curwin)->size;
+        cursor_refresh(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 'O':
-        edit_add_line(current_line(cwin), "");
-        cwin->buf->col = 0;
-        cursor_refresh(cwin);
-        mode_switch(INSERT);
+        edit_add_line(current_line(curwin), "");
+        curwin->buf->col = 0;
+        cursor_refresh(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 'o':
-        edit_add_line(current_line(cwin) + 1, "");
-        cwin->buf->col = 0;
-        cwin->buf->line++;
-        cursor_refresh(cwin);
-        mode_switch(INSERT);
+        edit_add_line(current_line(curwin) + 1, "");
+        curwin->buf->col = 0;
+        curwin->buf->line++;
+        cursor_refresh(curwin);
+        mode_switch(MODE_INSERT);
         break;
     case 'i':
-        mode_switch(INSERT);
+        mode_switch(MODE_INSERT);
         break;
     case ':':
-        mode_switch(COMMAND);
+        mode_switch(MODE_COMMAND);
         break;
     case '/':
-        mode_switch(SEARCH);
+        mode_switch(MODE_SEARCH);
         break;
     }
 }

@@ -12,7 +12,6 @@ void die(const char *errstr, ...)
     endwin();
 
     va_list ap;
-
     va_start(ap, errstr);
     vfprintf(stderr, errstr, ap);
     va_end(ap);

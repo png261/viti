@@ -1,5 +1,6 @@
 #ifndef VITI_BUFFER_H
 #define VITI_BUFFER_H
+
 #include "window.h"
 
 typedef struct File {

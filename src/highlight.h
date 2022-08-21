@@ -1,5 +1,6 @@
 #ifndef VITI_HIGHLIGHT_H
 #define VITI_HIGHTLIHGT_H
+
 #include "window.h" 
 
 #ifndef TYPEDEF_WIN

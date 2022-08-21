@@ -39,6 +39,7 @@ void win_render(Win * win);
 void win_render_numbercol(Win * win); 
 void win_render_rows(Win * win); 
 void win_render_statusline(Win * buf); 
+void win_render_line(Win * win, int line);
 
 void win_scroll(Win *win);
 
