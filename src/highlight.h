@@ -8,7 +8,7 @@
 typedef struct window Win;
 #endif 
 
-void highlight_row(Win * win, int line, const char* query, int color_pair);
+void highlight_line(Win * win, Line *line, const char* query, int color_pair);
 extern int is_highlight; 
 
 #endif

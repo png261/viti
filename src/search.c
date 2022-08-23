@@ -16,6 +16,7 @@
 
 /* extern */
 extern Win *curwin;
+extern Buffer *curbuf;
 extern int is_highlight;
 
 /* export var */
@@ -32,13 +33,13 @@ char *search_query_old;
 void search_callback(const char *query, const int c) 
 {
     if (strlen(query) == 0) {
-        win_render_rows(curwin);
+        win_render_lines(curwin);
         return;
     }
     if (c == '\x1b') {
         match_list = match_list_old;
         search_query = search_query_old;
-        win_render_rows(curwin);
+        win_render_lines(curwin);
         return;
     } else if (c == '\n') {
         search_query_old = NULL;
@@ -67,8 +68,8 @@ void search_move()
     }
 
     mess_send("/%s [%d/%d]", search_query, match_index, match_count);
-    curwin->buf->col = matched->x;
-    curwin->buf->line = matched->y;
+    curbuf->curcol = matched->x;
+    curbuf->curline = matched->y;
     win_scroll(curwin);
     cursor_refresh(curwin);
 }
@@ -77,13 +78,13 @@ int  search_count(Win * win, const char * query)
 {
     Buffer *buf = win->buf;
     int count = 0;
-    for (int y = 0; y < buf->file.lines; y++) {
-        Row *row = &buf->rows[y];
-        if(row == NULL) {
+    for (int y = 0; y < buf->nlines; y++) {
+        Line *line = &buf->lines[y];
+        if(line == NULL) {
            break; 
         }
 
-        char *match = row->content;
+        char *match = line->content;
         while ((match = strstr(match, query)) != NULL) {
             count++;
             match += strlen(query);
@@ -107,7 +108,7 @@ void search(Win *win, const char *query)
     /* count the pos  */
     match_count = search_count(win, query);
     if(match_count == 0) { 
-        win_render_rows(curwin);
+        win_render_lines(curwin);
         return;
     }
 
@@ -115,18 +116,18 @@ void search(Win *win, const char *query)
     const int len = strlen(query);
     match_list = xrealloc(match_list, match_count * sizeof(*match_list));
     Pos *pos = match_list;
-    for (int y = 0; y < buf->file.lines; y++) {
-        Row *row = &buf->rows[y];
-        char *match = row->content;
+    for (int y = 0; y < buf->nlines; y++) {
+        Line *line = &buf->lines[y];
+        char *match = line->content;
 
         while ((match = strstr(match, query)) != NULL) {
-            pos->x = match - row->content;
+            pos->x = match - line->content;
             pos->y = y;
             pos++;
             match += len;
         }
     }
-    win_render_rows(curwin);
+    win_render_lines(curwin);
     search_move();
 }
 

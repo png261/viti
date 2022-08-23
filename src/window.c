@@ -19,49 +19,38 @@ extern char *search_query;
 void win_scroll(Win *win) 
 {
     Buffer *buf = win->buf;
-    Row *row = current_row(win);
+    Line *line = current_line(win);
 
-    LIMIT(buf->col, 0, row->size);
-    LIMIT(buf->line, 0, buf->file.lines - 1);
+    LIMIT(buf->curcol, 0, line->size);
+    LIMIT(buf->curline, 0, buf->nlines - 1);
 
-    if (buf->col < win->view.xoff) {
-        win->view.xoff = buf->col;
-        win_render_rows(win);
+    if (buf->curcol < win->view.xoff) {
+        win->view.xoff = buf->curcol;
+        win_render_lines(win);
     }
-    if (buf->col >= win->view.xoff + win->view.x) {
-        win->view.xoff = buf->col - win->view.x + 1;
-        win_render_rows(win);
+    if (buf->curcol >= win->view.xoff + win->view.x) {
+        win->view.xoff = buf->curcol - win->view.x + 1;
+        win_render_lines(win);
     }
 
-    if (buf->line < win->view.yoff) {
-        win->view.yoff = buf->line;
-        win_render_rows(win);
+    if (buf->curline < win->view.yoff) {
+        win->view.yoff = buf->curline;
+        win_render_lines(win);
     }
-    if (buf->line >= win->view.yoff + win->view.y) {
-        win->view.yoff = buf->line - win->view.y + 1;
-        win_render_rows(win);
+    if (buf->curline >= win->view.yoff + win->view.y) {
+        win->view.yoff = buf->curline - win->view.y + 1;
+        win_render_lines(win);
     }
-}
-
-
-int current_line(Win *win)
-{
-    return win->buf->line; 
-}
-
-int current_col(Win *win) 
-{
-    return win->buf->col; 
 }
 
 int buffer_progress(Win *win)
 {
-    return (int)((float)(win->buf->line + 1) / win->buf->file.lines * 100);
+    return (int)((float)(win->buf->curline + 1) / win->buf->nlines * 100);
 }
 
-Row *current_row(Win *win) 
+Line *current_line(Win *win) 
 { 
-    return &win->buf->rows[win->buf->line];
+    return &win->buf->lines[win->buf->curline];
 }
 
 Win *win_resize(Win * win, const int height, const int width)
@@ -110,13 +99,13 @@ Win *win_create(Buffer *buf, const int height, const int width, const int y, con
     return win;
 }
 
-void print_rows(Win *win)
+void print_lines(Win *win, Line *lines)
 {
     Buffer *buf = win->buf;
-    for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
-        Row *row = &buf->rows[win->view.yoff + y];
-        int len = MIN(MAX(row->size - win->view.xoff, 0), win->view.x);
-        mvwaddnstr(win->textarea, y, 0, &row->content[win->view.xoff], len);
+    for (int y = 0; y < MIN(buf->nlines, win->view.y); y++) {
+        Line *line = &buf->lines[win->view.yoff + y];
+        int len = MIN(MAX(line->size - win->view.xoff, 0), win->view.x);
+        mvwaddnstr(win->textarea, y, 0, &line->content[win->view.xoff], len);
     }
 }
 
@@ -127,8 +116,9 @@ void win_update_highlight(Win *win)
     }
 
     Buffer *buf = win->buf;
-    for (int y = 0; y < MIN(buf->file.lines, win->view.y); y++) {
-        highlight_row(win, win->view.yoff + y, search_query, PAIR_HIGHLIGHT);
+    Line *line = &buf->lines[win->view.yoff];
+    for (int y = 0; y < MIN(buf->nlines, win->view.y); y++) {
+        highlight_line(win, line + y, search_query, PAIR_HIGHLIGHT);
     }
 }
 
@@ -137,26 +127,25 @@ void win_clear_line(Win * win, int line){
     wclrtoeol(win->textarea);
 }
 
-void win_render_line(Win * win, int line){
-    Row *row = &win->buf->rows[line];
-    if(row == NULL){
+void win_render_line(Win * win, Line *line){
+    if(line == NULL){
         return; 
     }
 
-    win_clear_line(win, line);
+    win_clear_line(win, line - win->buf->lines);
 
-    int len = MIN(MAX(row->size - win->view.xoff, 0), win->view.x);
-    mvwaddnstr(win->textarea, line - win->view.yoff, 0, &row->content[win->view.xoff], len);
+    int len = MIN(MAX(line->size - win->view.xoff, 0), win->view.x);
+    mvwaddnstr(win->textarea, line - win->buf->lines - win->view.yoff, 0, &line->content[win->view.xoff], len);
     win_scroll(win);
     cursor_refresh(win);
     wrefresh(win->textarea);
 }
 
-void win_render_rows(Win *win) 
+void win_render_lines(Win *win) 
 {
     werase(win->textarea);
 
-    print_rows(win);
+    print_lines(win, win->buf->lines);
     win_update_highlight(win);
     win_scroll(win);
     cursor_refresh(win);
@@ -166,14 +155,15 @@ void win_render_rows(Win *win)
 
 void relative_number(Win *win, int y) 
 {
+    Buffer *buf = win->buf; 
     char num[20];
-    if (y == win->buf->line - win->view.yoff) {
+    if (y == buf->curline - win->view.yoff) {
         sprintf(num, "%d", y + win->view.yoff + 1);
         mvwaddstr(win->numbercol, y, 0, num);
         return;
     } 
 
-    sprintf(num, "%d", abs(win->buf->line - win-> view.yoff - y));
+    sprintf(num, "%d", abs(buf->curline - win-> view.yoff - y));
     mvwaddstr(win->numbercol, y, 2, num);
 }
 
@@ -184,7 +174,7 @@ void win_render_numbercol(Win *win)
     wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->view.y; y++) {
-        if (y + win->view.yoff >= buf->file.lines) {
+        if (y + win->view.yoff >= buf->nlines) {
             mvwaddch(win->numbercol, y, 0, '~');
         } else {
             relative_number(win, y);
@@ -207,7 +197,7 @@ void win_render_statusline(Win *win)
     char lineinfo[128];
     char percentInfo[128];
 
-    sprintf(lineinfo, "%d,%d", current_line(win) + 1, buf->file.lines);
+    sprintf(lineinfo, "%d,%d", buf->curline + 1, buf->nlines);
     sprintf(percentInfo, "%d%%", buffer_progress(win));
 
     mvwaddstr(win->statusline, 0,
@@ -221,6 +211,6 @@ void win_render_statusline(Win *win)
 void win_render(Win *win) 
 {
     win_render_numbercol(win);
-    win_render_rows(win);
+    win_render_lines(win);
     win_render_statusline(win);
 }

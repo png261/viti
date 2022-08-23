@@ -9,7 +9,8 @@
 #include <string.h>
 
 
-int countLines(const char *filename) {
+int countLines(const char *filename) 
+{
     FILE *fp = fopen(filename, "r");
     char *line = NULL;
     size_t linecap = 0;
@@ -23,7 +24,8 @@ int countLines(const char *filename) {
     return count;
 }
 
-size_t trim(char *str) {
+size_t trim(char *str) 
+{
     char *c = str + strlen(str) - 1;
     while (*c == '\n' || *c == ' ') {
         *c = '\0';
@@ -31,27 +33,29 @@ size_t trim(char *str) {
     return strlen(str);
 }
 
-void file_save(const char *filename, Buffer *buf) {
+void file_save(const char *filename, Buffer *buf) 
+{
     if (filename == NULL) {
         mess_send("No file name");
         return;
     }
     FILE *fp = fopen(filename, "w+");
 
-    for (int y = 0; y < buf->file.lines; y++) {
-        Row *row = &buf->rows[y];
-        fputs(row->content, fp);
-        if (y != buf->file.lines - 1) {
+    for (int y = 0; y < buf->nlines; y++) {
+        Line *line = &buf->lines[y];
+        fputs(line->content, fp);
+        if (y != buf->nlines - 1) {
             fputs("\n", fp);
         }
     }
 
-    mess_send("\"%s\" %dL written", buf->file.name, buf->file.lines);
+    mess_send("\"%s\" %dL written", buf->file.name, buf->nlines);
 
     fclose(fp);
 }
 
-void file_open(const char *filename, Buffer *buf) {
+void file_open(const char *filename, Buffer *buf) 
+{
     FILE *fp = fopen(filename, "r");
     buf->file.name = filename;
 
@@ -59,22 +63,22 @@ void file_open(const char *filename, Buffer *buf) {
         return;
     }
 
-    buf->file.lines = countLines(filename);
-    buf->rows = xcalloc(buf->file.lines, sizeof(Row));
+    buf->nlines = countLines(filename);
+    buf->lines = xcalloc(buf->nlines, sizeof(Line));
 
-    char *line = NULL;
+    char *content = NULL;
     size_t linecap = 0;
     size_t linelen;
 
-    Row *current = buf->rows;
-    while ((getline(&line, &linecap, fp)) != -1) {
-        linelen = trim(line);
+    Line *current = buf->lines;
+    while ((getline(&content, &linecap, fp)) != -1) {
+        linelen = trim(content);
         current->content = xmalloc(linelen * sizeof(*current->content));
-        memcpy(current->content, line, linelen);
+        memcpy(current->content, content, linelen);
         current->size = linelen;
         current++;
     }
 
-    free(line);
+    free(content);
     fclose(fp);
 }

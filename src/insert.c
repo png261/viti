@@ -11,8 +11,11 @@
 
 
 extern Win *curwin;
+extern Buffer *curbuf;
 
 void insert_mode(const int c) {
+    Line const *line = current_line(curwin);
+
     switch (c) {
     /* move */
     case KEY_LEFT:
@@ -33,21 +36,21 @@ void insert_mode(const int c) {
         mode_switch(MODE_NORMAL);
         break;
     case '\n':
-        if (curwin->buf->col == 0) {
-            edit_add_line(curwin->buf->line, "");
+        if (curbuf->curcol == 0) {
+            edit_add_line(line, "");
         } else {
-            edit_break_line(curwin->buf->line, curwin->buf->col);
-            curwin->buf->col = 0;
-            curwin->buf->line++;
+            edit_break_line(line, curbuf->curcol);
+            curbuf->curcol = 0;
+            curbuf->curline++;
             cursor_refresh(curwin);
         }
         break;
     case CTRL('h'):
     case KEY_BACKSPACE:
-        edit_del_char(curwin->buf->line, curwin->buf->col - 1);
+        edit_del_char(line, curbuf->curcol - 1);
         break;
     default:
-        edit_append_char(curwin->buf->line, curwin->buf->col, c);
+        edit_append_char(line, curbuf->curcol, c);
         break;
     }
 }

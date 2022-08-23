@@ -12,9 +12,11 @@
 
 
 extern Win *curwin;
+extern Buffer *curbuf;
 
 void normal_mode(const int c) 
 {
+    Line const *line = current_line(curwin);
     switch (c) {
     /* move */
     case KEY_LEFT:
@@ -34,23 +36,23 @@ void normal_mode(const int c)
         cursor_up(curwin);
         break;
     case 'G':
-        curwin->buf->line = curwin->buf->file.lines;
+        line = curbuf->nlines;
         win_scroll(curwin);
         cursor_refresh(curwin);
         break;
     case 'g':
         if (getch() == 'g') {
-            curwin->buf->line = 0;
+            line = 0;
             win_scroll(curwin);
             cursor_refresh(curwin);
         }
         break;
     case '0':
-        curwin->buf->col = 0;
+        curbuf->curcol = 0;
         cursor_refresh(curwin);
         break;
     case '$':
-        curwin->buf->col = current_row(curwin)->size;
+        curbuf->curcol = current_line(curwin)->size;
         cursor_refresh(curwin);
         break;
     /* search */
@@ -63,36 +65,36 @@ void normal_mode(const int c)
     /* edit */
     case 'd':
         if (getch() == 'd') {
-            edit_del_line(current_line(curwin));
-            win_render_rows(curwin);
+            edit_del_line(curbuf->curline);
+            win_render_lines(curwin);
             cursor_refresh(curwin);
         }
         break;
     case 'D':
-        edit_del_end(current_line(curwin), current_col(curwin));
+        edit_del_end(line, curbuf->curcol);
         break;
     case 'C':
-        edit_del_end(current_line(curwin), current_col(curwin));
+        edit_del_end(line, curbuf->curcol);
         mode_switch(MODE_INSERT);
         break;
     case 'S':
-        edit_del_str(current_line(curwin), 0, current_row(curwin)->size);
+        edit_del_str(line, 0, current_line(curwin)->size);
         mode_switch(MODE_INSERT);
         break;
     case 'J':
-        edit_join_line(current_line(curwin) + 1);
+        edit_join_line(line - 1);
         break;
     case 'x':
-        edit_del_char(current_line(curwin), current_col(curwin));
+        edit_del_char(line, curbuf->curcol);
         cursor_refresh(curwin);
         break;
     case 'I':
-        curwin->buf->col = 0;
+        curbuf->curcol = 0;
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;
     case 's':
-        edit_del_char(current_line(curwin), current_col(curwin));
+        edit_del_char(line, curbuf->curcol);
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;
@@ -101,20 +103,20 @@ void normal_mode(const int c)
         mode_switch(MODE_INSERT);
         break;
     case 'A':
-        curwin->buf->col = current_row(curwin)->size;
+        curbuf->curcol = current_line(curwin)->size;
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;
     case 'O':
-        edit_add_line(current_line(curwin), "");
-        curwin->buf->col = 0;
+        edit_add_line(line, "");
+        curbuf->curcol = 0;
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;
     case 'o':
-        edit_add_line(current_line(curwin) + 1, "");
-        curwin->buf->col = 0;
-        curwin->buf->line++;
+        edit_add_line(line + 1, "");
+        curbuf->curcol = 0;
+        line++;
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;

@@ -9,30 +9,30 @@
 #include <string.h>
 
 extern Win *curwin;
+extern Buffer *curbuf;
 
 /* char */
-void edit_append_char(int line, int col, const char c)
+void edit_append_char(Line * line, int col, const char c)
 {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL) {
+    if(line == NULL) {
         return;
     }
 
-    if (col < 0 || col > row->size) {
-        col = row->size;
+    if (col < 0 || col > line->size) {
+        col = line->size;
     }
 
-    row->content = xrealloc(row->content, row->size + 2);
-    memmove(&row->content[col + 1], &row->content[col], row->size - col + 1);
-    row->content[col] = c;
-    row->size++;
-    curwin->buf->col++;
+    line->content = xrealloc(line->content, line->size + 2);
+    memmove(&line->content[col + 1], &line->content[col], line->size - col + 1);
+    line->content[col] = c;
+    line->size++;
+    line->content[line->size] = '\0';
+    curbuf->curcol++;
     win_render_line(curwin, line);
 }
 
-void edit_del_char(int line, int col) {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL) {
+void edit_del_char(Line *line, int col) {
+    if(line == NULL) {
         return;
     }
 
@@ -41,9 +41,10 @@ void edit_del_char(int line, int col) {
         return;
     }
 
-    memmove(&row->content[col], &row->content[col + 1], row->size - col);
-    row->size--;
-    curwin->buf->col--;
+    memmove(&line->content[col], &line->content[col + 1], line->size - col);
+    line->size--;
+    line->content[line->size] = '\0';
+    curbuf->curcol--;
     win_render_line(curwin, line);
 }
 
@@ -55,116 +56,77 @@ char *edit_get_substring(const char *str, int start, int len) {
     return substr;
 }
 
-char *edit_del_str(int line, int start, int end) {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL){
+char *edit_del_str(Line * line, int start, int end) {
+    if(line == NULL) {
         return NULL;
     }
 
-    if (start < 0 || end > row->size) {
+    if (start < 0 || end > line->size) {
         return NULL;
     }
 
     int len = end - start + 1;
-    char *deleted_str = edit_get_substring(row->content, start, len);
+    char *deleted_str = edit_get_substring(line->content, start, len);
 
     if (start < end) {
-        memmove(&row->content[start], &row->content[end], row->size - len);
+        memmove(&line->content[start], &line->content[end], line->size - len);
     }
 
-    row->size -= len;
+    line->size -= len;
     win_render_line(curwin, line);
 
     return deleted_str;
 }
 
-void edit_add_line(int line, const char *str) {
-    Buffer *buf = curwin->buf;
-    buf->rows = xrealloc(buf->rows, (buf->file.lines + 1) * sizeof(*buf->rows));
-
-    if (line < buf->file.lines) {
-        memmove(&buf->rows[line + 1], &buf->rows[line],
-                (buf->file.lines - line) * sizeof(*buf->rows));
-    }
-
-    const int len = strlen(str);
-    Row *row = &buf->rows[line];
-    if(row == NULL) {
-        return;
-    }
-    row->content = xmalloc(sizeof(str));
-    memcpy(row->content, str, len);
-    row->size = len;
-    row->content[row->size] = '\0';
-    buf->file.lines++;
-    win_render_rows(curwin);
+void edit_add_line(Line *line, const char *str) {
+    /* TODO */
 }
 
-void edit_del_line(int line) {
-    Buffer *buf = curwin->buf;
-    Row *row = &buf->rows[line];
-    if(row == NULL) {
-        return;
-    }
-
-    if (line < 0 || line >= buf->file.lines) {
-        return;
-    }
-
-    free(row->content);
-    row->content = NULL;
-
-    memmove(row, row + 1, sizeof(Row) * (buf->file.lines - line - 1));
-    buf->file.lines--;
-    win_render_rows(curwin);
+void edit_del_line(Line *line) {
+    /* TODO */
 }
 
-void edit_append_line(int line, const char *str) {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL) {
+void edit_append_line(Line * line, const char *str) {
+    if(line == NULL) {
         return;
     }
 
     const int len = strlen(str);
-    row->content = xrealloc(row->content, row->size + len + 1);
-    memcpy(&row->content[row->size], str, len);
-    row->size += len;
-    row->content[row->size] = '\0';
+    line->content = xrealloc(line->content, line->size + len + 1);
+    memcpy(&line->content[line->size], str, len);
+    line->size += len;
+    line->content[line->size] = '\0';
     win_render_line(curwin, line);
 }
 
-void edit_join_line(int line) {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL) {
+void edit_join_line(Line *line) {
+    if(line == NULL) {
         return;
     }
 
-    if(line == 0 && row->size <= 0) {
+    if(line == 0 && line->size <= 0) {
         edit_del_line(line);
         return;
     }
 
-    if (line == 0) {
-        return;
-    }
+    curbuf->curcol = (line - 1)->size + 1;
+    curbuf->curline = line - curbuf->lines - 1;
 
-
-    curwin->buf->col = (row - 1)->size + 1;
-    curwin->buf->line = line - 1;
-
-    edit_append_line(line - 1, row->content);
+    edit_append_line(line - 1, line->content);
     edit_del_line(line);
 }
 
-char *edit_del_end(int line, int col) {
-    Row *row = &curwin->buf->rows[line];
-    if(row == NULL) {
+char *edit_del_end(Line *line, int col) {
+    if(line == NULL) {
         return NULL;
     }
-    return edit_del_str(line, col, row->size - 1);
+    return edit_del_str(line, col, line->size - 1);
 }
 
-void edit_break_line(int line, int col) {
+void edit_break_line(Line *line, int col) {
+    if(line == NULL){
+        return;
+    }
     const char *str = edit_del_end(line, col);
     edit_add_line(line + 1, str);
 }

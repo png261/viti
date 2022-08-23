@@ -14,6 +14,7 @@
 
 extern Message mess;
 extern Win *curwin;
+extern Buffer *curbuf;
 
 /* setup */
 void ncurses_init() 
@@ -30,7 +31,8 @@ void init()
     ncurses_init();
     color_init();
     const int mess_height = 1;
-    curwin = win_create(NULL, LINES - mess_height, COLS, 0, 0);
+    curbuf = buffer_create();
+    curwin = win_create(curbuf, LINES - mess_height, COLS, 0, 0);
     mess.win = newwin(mess_height, COLS, LINES - mess_height, 0);
     refresh();
 }
@@ -41,7 +43,7 @@ int main(int argc, char *argv[])
     init();
 
     if (argc >= 2) {
-        file_open(argv[1], curwin->buf);
+        file_open(argv[1],curbuf);
     }
 
     win_render(curwin);

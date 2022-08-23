@@ -2,6 +2,8 @@
 
 #include "fileio.h"
 #include "message.h"
+#include "window.h"
+#include "buffer.h"
 #include "mode.h"
 #include "search.h"
 #include "util.h"
@@ -9,6 +11,7 @@
 #include <string.h>
 
 extern Win *curwin;
+extern Buffer *curbuf;
 extern int is_highlight;
 
 void command_mode() 
@@ -24,13 +27,13 @@ void command_mode()
     if (strcmp(query, "q") == 0) {
         quit();
     } else if (strcmp(query, "w") == 0) {
-        file_save(curwin->buf->file.name, curwin->buf);
+        file_save(curbuf->file.name, curbuf);
     } else if (strcmp(query, "noh") == 0) {
         is_highlight = false;
-        win_render_rows(curwin);
+        win_render_lines(curwin);
     } else if (sscanf(query, "w %s", filename) == 1) {
-        curwin->buf->file.name = filename;
-        file_save(filename, curwin->buf);
+        curbuf->file.name = filename;
+        file_save(filename, curbuf);
         win_render_statusline(curwin);
     }
 

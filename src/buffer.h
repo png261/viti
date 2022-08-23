@@ -5,19 +5,19 @@
 
 typedef struct File {
     char * name;
-    int lines;
 } File;
 
-typedef struct Row {
+typedef struct Line {
     char *content;
     int size;
-} Row;
+} Line;
 
 struct buffer {
-    int line;
-    int col;
-    Row *rows;
+    Line *lines;
+    int nlines;
     File file;
+    int curline;
+    int curcol;
 };
 
 #ifndef TYPEDEF_BUFFER

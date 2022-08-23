@@ -4,13 +4,15 @@
 
 #include <stdlib.h>
 
+Buffer * curbuf;
+
 Buffer *buffer_create() 
 {
     Buffer *buf = xmalloc(sizeof(*buf));
-    buf->line = 0;
-    buf->col = 0;
-    buf->file.lines = 1;
+    buf->curline = 0;
+    buf->curcol = 0;
+    buf->nlines = 1;
     buf->file.name = NULL;
-    buf->rows = xmalloc(sizeof(*buf->rows));
+    buf->lines = xmalloc(sizeof(*buf->lines));
     return buf;
 }
