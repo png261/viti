@@ -99,13 +99,17 @@ Win *win_create(Buffer *buf, const int height, const int width, const int y, con
     return win;
 }
 
-void print_lines(Win *win, Line *lines)
+void print_lines(Win *win)
 {
     Buffer *buf = win->buf;
-    for (int y = 0; y < MIN(buf->nlines, win->view.y); y++) {
-        Line *line = &buf->lines[win->view.yoff + y];
+    Line *line = buf->lines;
+    for (int y = 0; y < win->view.y; y++) {
+        if(line == NULL) {
+            return; 
+        }
         int len = MIN(MAX(line->size - win->view.xoff, 0), win->view.x);
         mvwaddnstr(win->textarea, y, 0, &line->content[win->view.xoff], len);
+        line = line->next;
     }
 }
 
@@ -145,7 +149,7 @@ void win_render_lines(Win *win)
 {
     werase(win->textarea);
 
-    print_lines(win, win->buf->lines);
+    print_lines(win);
     win_update_highlight(win);
     win_scroll(win);
     cursor_refresh(win);

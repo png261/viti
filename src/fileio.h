@@ -8,7 +8,7 @@
 typedef struct buffer Buffer;
 #endif 
 
-void file_open(const char *filename, Buffer *buf);
-void file_save(const char *filename, Buffer *buf);
+void file_open(char *filename, Buffer *buf);
+void file_save(char *filename, Buffer *buf);
 
 #endif

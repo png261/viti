@@ -33,7 +33,7 @@ size_t trim(char *str)
     return strlen(str);
 }
 
-void file_save(const char *filename, Buffer *buf) 
+void file_save(char *filename, Buffer *buf) 
 {
     if (filename == NULL) {
         mess_send("No file name");
@@ -41,20 +41,20 @@ void file_save(const char *filename, Buffer *buf)
     }
     FILE *fp = fopen(filename, "w+");
 
-    for (int y = 0; y < buf->nlines; y++) {
-        Line *line = &buf->lines[y];
+    Line * line = buf->lines;
+    while(line != NULL){
         fputs(line->content, fp);
-        if (y != buf->nlines - 1) {
+        line = line->next;
+        if (line != NULL) {
             fputs("\n", fp);
         }
     }
 
     mess_send("\"%s\" %dL written", buf->file.name, buf->nlines);
-
     fclose(fp);
 }
 
-void file_open(const char *filename, Buffer *buf) 
+void file_open(char *filename, Buffer *buf) 
 {
     FILE *fp = fopen(filename, "r");
     buf->file.name = filename;
@@ -63,20 +63,15 @@ void file_open(const char *filename, Buffer *buf)
         return;
     }
 
-    buf->nlines = countLines(filename);
-    buf->lines = xcalloc(buf->nlines, sizeof(Line));
-
     char *content = NULL;
     size_t linecap = 0;
-    size_t linelen;
 
-    Line *current = buf->lines;
+    Line **line = &buf->lines;
     while ((getline(&content, &linecap, fp)) != -1) {
-        linelen = trim(content);
-        current->content = xmalloc(linelen * sizeof(*current->content));
-        memcpy(current->content, content, linelen);
-        current->size = linelen;
-        current++;
+        size_t size = trim(content); 
+        line_push(line, content, size);
+        line = &(*line)->next;
+        buf->nlines++;
     }
 
     free(content);
