@@ -28,7 +28,7 @@ void edit_append_char(Line * line, int col, const char c)
     line->size++;
     line->content[line->size] = '\0';
     curbuf->curcol++;
-    win_render_line(curwin, line);
+    win_render_lines(curwin);
 }
 
 void edit_del_char(Line *line, int col) {
@@ -45,7 +45,7 @@ void edit_del_char(Line *line, int col) {
     line->size--;
     line->content[line->size] = '\0';
     curbuf->curcol--;
-    win_render_line(curwin, line);
+    win_render_lines(curwin);
 }
 
 /* line */
@@ -73,17 +73,17 @@ char *edit_del_str(Line * line, int start, int end) {
     }
 
     line->size -= len;
-    win_render_line(curwin, line);
+    win_render_lines(curwin);
 
     return deleted_str;
 }
 
-void edit_add_line(Line *line, const char *str) {
-    /* TODO */
+void edit_add_line(Line *line, char *str) {
+    line_insert(line, str, strlen(str));
 }
 
 void edit_del_line(Line *line) {
-    /* TODO */
+    line_remove(curbuf->lines, line);
 }
 
 void edit_append_line(Line * line, const char *str) {
@@ -96,7 +96,7 @@ void edit_append_line(Line * line, const char *str) {
     memcpy(&line->content[line->size], str, len);
     line->size += len;
     line->content[line->size] = '\0';
-    win_render_line(curwin, line);
+    win_render_lines(curwin);
 }
 
 void edit_join_line(Line *line) {
@@ -109,10 +109,10 @@ void edit_join_line(Line *line) {
         return;
     }
 
-    curbuf->curcol = (line - 1)->size + 1;
-    curbuf->curline = line - curbuf->lines - 1;
+    /* curbuf->curcol = line->size + 1; */
+    /* curbuf->curline = line - curbuf->lines - 1; */
 
-    edit_append_line(line - 1, line->content);
+    edit_append_line(line->prev, line->content);
     edit_del_line(line);
 }
 

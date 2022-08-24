@@ -16,7 +16,7 @@ extern Buffer *curbuf;
 
 void normal_mode(const int c) 
 {
-    Line const *line = current_line(curwin);
+    Line *line = current_line(curwin);
     switch (c) {
     /* move */
     case KEY_LEFT:
@@ -65,7 +65,7 @@ void normal_mode(const int c)
     /* edit */
     case 'd':
         if (getch() == 'd') {
-            edit_del_line(curbuf->curline);
+            line_remove(&curbuf->lines, line);
             win_render_lines(curwin);
             cursor_refresh(curwin);
         }
@@ -82,7 +82,7 @@ void normal_mode(const int c)
         mode_switch(MODE_INSERT);
         break;
     case 'J':
-        edit_join_line(line - 1);
+        edit_join_line(line->next);
         break;
     case 'x':
         edit_del_char(line, curbuf->curcol);
@@ -114,9 +114,10 @@ void normal_mode(const int c)
         mode_switch(MODE_INSERT);
         break;
     case 'o':
-        edit_add_line(line + 1, "");
+        line_insert(current_line(curwin), "", 1);
         curbuf->curcol = 0;
-        line++;
+        curbuf->curline++;
+        win_render_lines(curwin);
         cursor_refresh(curwin);
         mode_switch(MODE_INSERT);
         break;

@@ -32,5 +32,9 @@ struct buffer {
 Buffer * buffer_create();
 Line *line_push(Line **line, char *content, size_t size);
 Line * new_line(Line *prev, char *content, size_t size);
+Line *line_at(Line *line, int at);
+void line_insert(Line *prev, char *content, size_t size);
+Line *line_insert_after(Line **line, char *content, size_t size);
+void line_remove(Line ** head, Line *del);
 
 #endif

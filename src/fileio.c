@@ -66,11 +66,10 @@ void file_open(char *filename, Buffer *buf)
     char *content = NULL;
     size_t linecap = 0;
 
-    Line **line = &buf->lines;
+    /* TODO: fix slow load file */
     while ((getline(&content, &linecap, fp)) != -1) {
         size_t size = trim(content); 
-        line_push(line, content, size);
-        line = &(*line)->next;
+        line_push(&buf->lines, content, size);
         buf->nlines++;
     }
 

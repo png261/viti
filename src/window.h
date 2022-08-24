@@ -14,15 +14,17 @@
 #endif 
 
 typedef struct View{
-    int x;
-    int y;
     int xoff;
     int yoff;
 }View;
 
 struct window{
     Buffer * buf;
+    Line *top_line;
     View view;
+
+    int textarea_lines;
+    int textarea_cols;
 
     WINDOW *textarea;
     WINDOW *statusline;

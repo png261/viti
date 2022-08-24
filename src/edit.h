@@ -9,7 +9,7 @@ void edit_append_line(Line *line, const char *str);
 void edit_del_char(Line *line, int col);
 
 void edit_join_line(Line *line);
-void edit_add_line(Line *line, const char * str);
+void edit_add_line(Line *line, char * str);
 void edit_del_line(Line *line);
 void edit_break_line(Line *line, int col);
 

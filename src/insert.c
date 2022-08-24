@@ -8,13 +8,14 @@
 #include "mode.h"
 #include "util.h"
 #include "window.h"
+#include "message.h"
 
 
 extern Win *curwin;
 extern Buffer *curbuf;
 
 void insert_mode(const int c) {
-    Line const *line = current_line(curwin);
+    Line *line = current_line(curwin);
 
     switch (c) {
     /* move */

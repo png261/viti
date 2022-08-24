@@ -19,17 +19,21 @@ extern char *search_query;
 void win_scroll(Win *win) 
 {
     Buffer *buf = win->buf;
-    Line *line = current_line(win);
 
+    LIMIT(buf->curline, 0, buf->nlines - 2); //TODO: check number 2
+
+    Line *line = current_line(win);
+    if(line == NULL){
+        return;
+    }
     LIMIT(buf->curcol, 0, line->size);
-    LIMIT(buf->curline, 0, buf->nlines - 1);
 
     if (buf->curcol < win->view.xoff) {
         win->view.xoff = buf->curcol;
         win_render_lines(win);
     }
-    if (buf->curcol >= win->view.xoff + win->view.x) {
-        win->view.xoff = buf->curcol - win->view.x + 1;
+    if (buf->curcol >= win->view.xoff + win->textarea_cols) {
+        win->view.xoff = buf->curcol - win->textarea_cols + 1;
         win_render_lines(win);
     }
 
@@ -37,8 +41,8 @@ void win_scroll(Win *win)
         win->view.yoff = buf->curline;
         win_render_lines(win);
     }
-    if (buf->curline >= win->view.yoff + win->view.y) {
-        win->view.yoff = buf->curline - win->view.y + 1;
+    if (buf->curline >= win->view.yoff + win->textarea_lines) {
+        win->view.yoff = buf->curline - win->textarea_lines + 1;
         win_render_lines(win);
     }
 }
@@ -50,17 +54,15 @@ int buffer_progress(Win *win)
 
 Line *current_line(Win *win) 
 { 
-    return &win->buf->lines[win->buf->curline];
+    return line_at(win->buf->lines, win->buf->curline);
 }
 
 Win *win_resize(Win * win, const int height, const int width)
 {
     const int size_statusline = 1;
     const int size_numbercol = 6;
-    win->view.x = width - size_numbercol;
-    win->view.y = height - size_statusline;
-    wresize(win->textarea, win->view.y, win->view.x );
-    wresize(win->numbercol, win->view.y, size_numbercol);
+    win->textarea_cols = width - size_numbercol;
+    win->textarea_lines = height - size_statusline;
     wresize(win->statusline, size_statusline, width);
 
     mvwin(win->textarea, 0, size_numbercol);
@@ -86,10 +88,10 @@ Win *win_create(Buffer *buf, const int height, const int width, const int y, con
 
     win->view.xoff = 0;
     win->view.yoff = 0;
-    win->view.x = width - size_numbercol;
-    win->view.y = height - size_statusline;
+    win->textarea_cols = width - size_numbercol;
+    win->textarea_lines = height - size_statusline;
 
-    win->textarea = newwin(win->view.y, win->view.x, y, x + size_numbercol);
+    win->textarea = newwin(win->textarea_lines, win->textarea_cols, y, x + size_numbercol);
     keypad(win->textarea, TRUE);
     win->numbercol = newwin(height - size_statusline, size_numbercol, y, x);
     win->statusline =
@@ -101,13 +103,14 @@ Win *win_create(Buffer *buf, const int height, const int width, const int y, con
 
 void print_lines(Win *win)
 {
-    Buffer *buf = win->buf;
-    Line *line = buf->lines;
-    for (int y = 0; y < win->view.y; y++) {
+    Line *line = line_at(win->buf->lines, win->view.yoff);
+
+    for (int y = 0; y < win->textarea_lines; y++) {
         if(line == NULL) {
             return; 
         }
-        int len = MIN(MAX(line->size - win->view.xoff, 0), win->view.x);
+
+        int len = MIN(MAX(line->size - win->view.xoff, 0), win->textarea_cols);
         mvwaddnstr(win->textarea, y, 0, &line->content[win->view.xoff], len);
         line = line->next;
     }
@@ -121,7 +124,7 @@ void win_update_highlight(Win *win)
 
     Buffer *buf = win->buf;
     Line *line = &buf->lines[win->view.yoff];
-    for (int y = 0; y < MIN(buf->nlines, win->view.y); y++) {
+    for (int y = 0; y < MIN(buf->nlines, win->textarea_lines); y++) {
         highlight_line(win, line + y, search_query, PAIR_HIGHLIGHT);
     }
 }
@@ -132,17 +135,18 @@ void win_clear_line(Win * win, int line){
 }
 
 void win_render_line(Win * win, Line *line){
-    if(line == NULL){
-        return; 
-    }
+    /* TODO */
+    /* if(line == NULL){ */
+    /*     return; */ 
+    /* } */
 
-    win_clear_line(win, line - win->buf->lines);
+    /* win_clear_line(win, line - win->buf->lines); */
 
-    int len = MIN(MAX(line->size - win->view.xoff, 0), win->view.x);
-    mvwaddnstr(win->textarea, line - win->buf->lines - win->view.yoff, 0, &line->content[win->view.xoff], len);
-    win_scroll(win);
-    cursor_refresh(win);
-    wrefresh(win->textarea);
+    /* int len = MIN(MAX(line->size - win->view.xoff, 0), win->textarea_cols); */
+    /* mvwaddnstr(win->textarea,win->buf->curline - win->view.yoff, 0, &line->content[win->view.xoff], len); */
+    /* win_scroll(win); */
+    /* cursor_refresh(win); */
+    /* wrefresh(win->textarea); */
 }
 
 void win_render_lines(Win *win) 
@@ -177,7 +181,7 @@ void win_render_numbercol(Win *win)
     werase(win->numbercol);
     wattron(win->numbercol, COLOR_PAIR(PAIR_NUMBERCOL));
 
-    for (int y = 0; y < win->view.y; y++) {
+    for (int y = 0; y < win->textarea_lines; y++) {
         if (y + win->view.yoff >= buf->nlines) {
             mvwaddch(win->numbercol, y, 0, '~');
         } else {
