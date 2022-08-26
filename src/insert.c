@@ -17,32 +17,31 @@ extern Win *curwin;
 extern Buffer *curbuf;
 
 
-void ins_del_to_start()
+static void ins_del_to_start()
 {
-    edit_del_str(current_line(curwin), 0, curbuf->curcol);
+    edit_del_str(curbuf->current_line, 0, curbuf->curcol);
     win_render_lines(curwin);
     curbuf->curcol = 0;
     cursor_refresh(curwin);
 }
 
 
-void ins_put_char(char c)
+static void ins_put_char(char c)
 {
-    Line *line = current_line(curwin); 
-    if(line == NULL) {
+    if(curbuf->current_line == NULL) {
         line_push(&curbuf->lines, NULL, 0);
     } 
 
-    edit_append_char(current_line(curwin), curbuf->curcol, c);
+    edit_append_char(curbuf->current_line, curbuf->curcol, c);
     win_render_lines(curwin);
     curbuf->curcol++;
     cursor_refresh(curwin);
 }
 
 
-void ins_del_char()
+static void ins_del_char()
 {
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     if (curbuf->curcol == 0) {
         curbuf->curcol = line->prev->size;
         edit_join_line(line->prev);
@@ -55,7 +54,7 @@ void ins_del_char()
 }
 
 
-void ins_break_line(Line * line) 
+static void ins_break_line(Line * line) 
 {
     char *str = edit_del_str(line, curbuf->curcol, line->size - curbuf->curcol + 1);
     line_insert_after(line, str, strlen(str));
@@ -67,7 +66,7 @@ void ins_break_line(Line * line)
 }
 
 
-void ins_add_line_before(Line * line)
+static void ins_add_line_before(Line * line)
 {
     line_insert_before(&curbuf->lines, line, "", 0);
     curbuf->nlines++;
@@ -78,7 +77,7 @@ void ins_add_line_before(Line * line)
 }
 
 
-void ins_add_line_after(Line * line)
+static void ins_add_line_after(Line * line)
 {
     line_insert_after(line, "", 0);
     curbuf->nlines++;
@@ -89,9 +88,9 @@ void ins_add_line_after(Line * line)
 }
 
 
-void ins_enter()
+static void ins_enter()
 {
-    Line * line = current_line(curwin);
+    Line * line = curbuf->current_line;
     if (curbuf->curcol >= line->size) {
         ins_add_line_after(line);
         return;

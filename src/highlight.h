@@ -3,12 +3,14 @@
 
 #include "window.h" 
 
+#include <stdbool.h>
+
 #ifndef INCLUDE_TYPEDEF_WINDOW
 #define INCLUDE_TYPEDEF_WINDOW
 typedef struct window Win;
 #endif 
 
-extern int is_highlight; 
+extern bool is_highlight; 
 
 void highlight_line(WINDOW * win, char *line, const char* query, int color_pair, int y);
 

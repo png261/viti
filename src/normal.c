@@ -17,34 +17,35 @@
 extern Win *curwin;
 extern Buffer *curbuf;
 
-
-void nor_new_line_above()
+static void nor_new_line_above()
 {
-    line_insert_before(&curbuf->lines, current_line(curwin), NULL, 0);
+    line_insert_before(&curbuf->lines, curbuf->current_line, NULL, 0);
     curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
+    update_current_line(curbuf);
     cursor_refresh(curwin);
     mode_switch(MODE_INSERT);
 }
 
 
-void nor_new_line_below()
+static void nor_new_line_below()
 {
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     line_insert_after(line, NULL, 0);
     curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
     curbuf->curline++;
+    update_current_line(curbuf);
     cursor_refresh(curwin);
     mode_switch(MODE_INSERT);
 }
 
 
-void nor_join_line()
+static void nor_join_line()
 {
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     curbuf->curcol = line->size;
     edit_join_line(line); 
     win_render_lines(curwin);
@@ -52,9 +53,9 @@ void nor_join_line()
 }
 
 
-void nor_del_end() 
+static void nor_del_end() 
 {
-    Line * line = current_line(curwin);
+    Line * line = curbuf->current_line;
     if(line == NULL) {
         return;
     }
@@ -63,50 +64,50 @@ void nor_del_end()
 }
 
 
-void nor_del_line()
+static void nor_del_line()
 {
-    line_remove(&curbuf->lines, current_line(curwin));
+    line_remove(&curbuf->lines, curbuf->current_line);
     curbuf->nlines--;
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
 
-void nor_replace_char()
+static void nor_replace_char()
 {
     char c = getch();
     /* TODO: fix special character */
     if(c == ESC) {
         return;
     }
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     line->content[curbuf->curcol] = c;
     win_render_lines(curwin);
 }
 
 
-void nor_del_char()
+static void nor_del_char()
 {
-    edit_del_char(current_line(curwin), curbuf->curcol);
+    edit_del_char(curbuf->current_line, curbuf->curcol);
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
 
-void nor_move_end_line()
+static void nor_move_end_line()
 {
-    curbuf->curcol = current_line(curwin)->size;
+    curbuf->curcol = curbuf->current_line->size;
     cursor_refresh(curwin);
 }
 
 
-void nor_move_start_line()
+static void nor_move_start_line()
 {
     curbuf->curcol = 0;
     cursor_refresh(curwin);
 }
 
-void nor_move_screen(int lines)
+static void nor_move_screen(int lines)
 {
     curwin->view.yoff += lines;
     curbuf->curline+= lines;
@@ -116,35 +117,42 @@ void nor_move_screen(int lines)
     win_render_lines(curwin);
 }
 
-void nor_move_cursor(int lines)
+static void nor_move_cursor(int lines)
 {
     curbuf->curline = curwin->view.yoff + lines;
     cursor_refresh(curwin);
 }
 
-void nor_go_top()
+static void nor_go_top()
 {
 
     curbuf->curline = 0;
     win_scroll(curwin);
+    update_current_line(curbuf);
+    win_render_numbercol(curwin);
+    win_render_statusline(curwin);
     cursor_refresh(curwin);
 }
 
-void nor_go_bottom()
+static void nor_go_bottom()
 {
-    curbuf->curline = curbuf->nlines;
+    curbuf->curline = curbuf->nlines - 1;
+    curbuf->current_line = line_at(curbuf->lines, curbuf->curline);
     win_scroll(curwin);
+    update_current_line(curbuf);
+    win_render_numbercol(curwin);
+    win_render_statusline(curwin);
     cursor_refresh(curwin);
 }
 
-void nor_show_info()
+static void nor_show_info()
 {
    mess_send("\"%s\" %d lines, --%d%%--", curbuf->file.name, curbuf->nlines, buffer_progress(curwin)); 
 }
 
-void nor_swapchar()
+static void nor_swapchar()
 {
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     char *c =  &line->content[curbuf->curcol];
     *c = islower(*c) ? toupper(*c) : tolower(*c);
     win_render_lines(curwin);
@@ -221,14 +229,13 @@ void normal_mode(const int c)
             nor_move_end_line();
             break;
 
-
-        /* TODO:search */
-        /* case 'n': */
-        /*     search_next(); */
-        /*     break; */
-        /* case 'N': */
-        /*     search_prev(); */
-        /*     break; */
+        // SEARCH
+        case 'n':
+            search_next();
+            break;
+        case 'N':
+            search_prev();
+            break;
 
         // EDIT
         case 'd':
@@ -247,7 +254,7 @@ void normal_mode(const int c)
             nor_replace_char();
             break;
         case 'S':
-            edit_del_str(current_line(curwin), 0, current_line(curwin)->size);
+            edit_del_str(curbuf->current_line, 0, curbuf->current_line->size);
             mode_switch(MODE_INSERT);
             break;
         case 'J':
@@ -261,7 +268,7 @@ void normal_mode(const int c)
             mode_switch(MODE_INSERT);
             break;
         case 's':
-            edit_del_char(current_line(curwin), curbuf->curcol);
+            edit_del_char(curbuf->current_line, curbuf->curcol);
             cursor_refresh(curwin);
             mode_switch(MODE_INSERT);
             break;

@@ -46,7 +46,8 @@ void win_render_statusline(Win * buf);
 
 void win_scroll(Win *win);
 
+void update_top_line(Win *win, int yoff); 
+
 int buffer_progress(Win *win); 
-Line *current_line(Win *win);
 
 #endif

@@ -20,7 +20,7 @@ extern Win *curwin;
 extern Buffer *curbuf;
 
 
-void ncurses_init() 
+static void ncurses_init() 
 {
     initscr();
     ESCDELAY = 10;
@@ -30,7 +30,7 @@ void ncurses_init()
 }
 
 
-void init() 
+static void init() 
 {
     ncurses_init();
     color_init();
@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
         file_open(argv[1],curbuf);
     }
 
+    update_top_line(curwin, 0);
     win_render(curwin);
     cursor_refresh(curwin);
     mode_switch(MODE_NORMAL);

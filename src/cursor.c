@@ -9,10 +9,10 @@ extern Win * curwin;
 extern Buffer * curbuf;
 
 
-void cursor_move(Win *win){
+static void cursor_move(Win *win){
     int y = win->buf->curline - win->view.yoff;
     int x = win->buf->curcol - win->view.xoff;
-    Line *line = current_line(curwin);
+    Line *line = curbuf->current_line;
     LIMIT(x, 0, line == NULL ? 0 : line->size);
     LIMIT(y, 0, curbuf->nlines - 1);
     wmove(win->textarea, y, x);
@@ -21,11 +21,9 @@ void cursor_move(Win *win){
 
 void cursor_refresh(Win *win)
 {
-    win_scroll(win);
-    win_render_numbercol(win);
-    win_render_statusline(win);
     cursor_move(win);
     wrefresh(win->textarea);
+    win_scroll(win);
 }
 
 
@@ -46,6 +44,9 @@ void cursor_left(Win *win)
 void cursor_up(Win *win) 
 {
     win->buf->curline--;
+    curbuf->current_line = curbuf->current_line->prev; 
+    win_render_numbercol(win);
+    win_render_statusline(win);
     cursor_refresh(win);
 }
 
@@ -53,5 +54,8 @@ void cursor_up(Win *win)
 void cursor_down(Win *win) 
 {
     win->buf->curline++;
+    curbuf->current_line = curbuf->current_line->next; 
+    win_render_numbercol(win);
+    win_render_statusline(win);
     cursor_refresh(win);
 }

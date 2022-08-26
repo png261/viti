@@ -10,18 +10,6 @@
 Buffer * curbuf;
 
 
-Line * new_line(char *content, size_t size)
-{
-    Line * line = malloc(sizeof(*line));
-    line->content = malloc(size * sizeof(*line->content));
-    memcpy(line->content, content, size);
-    line->size = size;
-    line->prev = NULL;
-    line->next = NULL;
-    return line;
-}
-
-
 Buffer *buffer_create() 
 {
     Buffer *buf = xmalloc(sizeof(*buf));
@@ -30,7 +18,20 @@ Buffer *buffer_create()
     buf->nlines = 1;
     buf->file.name = NULL;
     buf->lines = NULL;
+    buf->current_line = NULL;
     return buf;
+}
+
+
+static Line * new_line(char *content, size_t size)
+{
+    Line * line = malloc(sizeof(*line));
+    line->content = malloc(size * sizeof(*line->content));
+    memcpy(line->content, content, size);
+    line->size = size;
+    line->prev = NULL;
+    line->next = NULL;
+    return line;
 }
 
 
@@ -50,10 +51,14 @@ void line_push(Line** head_ref, char *content, size_t size)
 
 Line *line_at(Line *line, int at)
 {
-    if(line == NULL){
-        return NULL;
+    while(at > 0) {
+        if(line == NULL){
+            return NULL;
+        }
+        line = line->next;
+        at--;
     }
-    return at == 0 ? line : line_at(line->next, at - 1);
+    return line;
 }
 
 
@@ -127,3 +132,10 @@ void line_remove(Line ** head, Line *del)
 
     free_line(del);
 }
+
+
+void update_current_line(Buffer *buf)
+{
+    buf->current_line = line_at(buf->lines, buf->curline);
+}
+

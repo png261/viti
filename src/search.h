@@ -12,12 +12,6 @@ typedef struct Pos{
     int x,y;
 } Pos;
 
-extern Pos * matched_list;
-extern char *search_query;
-extern int matched_index;
-extern int matched_count;
-
-
 void search_mode();
 void search_next();
 void search_prev();

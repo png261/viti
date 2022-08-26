@@ -13,7 +13,7 @@
 
 
 extern Win *curwin;
-enum MODE State = MODE_NORMAL;
+static int State = MODE_NORMAL;
 
 void resize()
 {
@@ -23,7 +23,7 @@ void resize()
     win_render(curwin);
 }
 
-void mode_loop(enum MODE mode, void (*handle_key)(const int)) 
+static void mode_loop(int mode, void (*handle_key)(const int)) 
 {
     do {
         const int c = getch();

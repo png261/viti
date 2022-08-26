@@ -23,6 +23,7 @@ struct Line {
 
 struct buffer {
     Line *lines;
+    Line *current_line;
     int nlines;
     File file;
     int curline;
@@ -37,4 +38,5 @@ void line_add_first(Line ** head, char *content, size_t size);
 void line_insert_after(Line *prev, char *content, size_t size);
 void line_insert_before(Line ** head_ref, Line * root, char * content, size_t size);
 
+void update_current_line(Buffer *buf);
 #endif

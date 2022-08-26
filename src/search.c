@@ -14,26 +14,27 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 /* extern */
 extern Win *curwin;
 extern Buffer *curbuf;
-extern int is_highlight;
+extern bool is_highlight;
 
 /* export var */
-static int match_index = 0;
-static int match_count = 0;
-Pos *match_list = NULL;
 char *search_query = NULL;
 
 /* local var */
-Pos *match_list_old;
-char *search_query_old;
+static int match_index = 0;
+static int match_count = 0;
+static Pos *match_list = NULL;
+static Pos *match_list_old = NULL;
+static char *search_query_old = NULL;
 
 
 /* TODO free */
-void search_callback(const char *query, const int c) 
+static void search_callback(const char *query, const int c) 
 {
     if (strlen(query) == 0) {
         win_render_lines(curwin);
@@ -54,18 +55,7 @@ void search_callback(const char *query, const int c)
 }
 
 
-void search_mode() 
-{
-    match_list_old = match_list;
-    search_query_old = search_query;
-
-    is_highlight = 1;
-    prompt("/%s", search_callback);
-    mode_switch(MODE_NORMAL);
-}
-
-
-void search_move() 
+static void search_move() 
 {
     Pos *matched = &match_list[match_index];
     if (match_count == 0 || matched == NULL) {
@@ -80,7 +70,7 @@ void search_move()
 }
 
 
-int  search_count(Win * win, const char * query)
+static int search_count(Win * win, const char * query)
 {
     Buffer *buf = win->buf;
     int count = 0;
@@ -93,9 +83,19 @@ int  search_count(Win * win, const char * query)
         }
         line = line->next;
     }
-
     return count; 
 }
+
+
+void search_mode() 
+{
+    match_list_old = match_list;
+    search_query_old = search_query;
+    is_highlight = true;
+    prompt("/%s", search_callback);
+    mode_switch(MODE_NORMAL);
+}
+
 
 
 void search(Win *win, const char *query) 
@@ -109,22 +109,22 @@ void search(Win *win, const char *query)
 
     Buffer *buf = win->buf;
 
-    /* count the pos  */
+    /* count */
     match_count = search_count(win, query);
     if(match_count == 0) { 
         win_render_lines(curwin);
         return;
     }
 
-    /* find all pos */
+    /* find all */
     const int len = strlen(query);
     match_list = xrealloc(match_list, match_count * sizeof(*match_list));
-    Line *line = buf->lines;
     int y = 0;
     Pos *pos = match_list;
+    char *match; 
+    Line *line = buf->lines;
     while(line != NULL){
-        char *match = line->content;
-
+        match = line->content;
         while ((match = strstr(match, query)) != NULL) {
             pos->x = match - line->content;
             pos->y = y;
@@ -144,7 +144,6 @@ void search_next()
     if (match_list == NULL || match_count == 0) {
         return;
     }
-
     match_index = (match_index + 1) % match_count;
     search_move();
 }
@@ -155,7 +154,6 @@ void search_prev()
     if (match_list == NULL || match_count == 0) {
         return;
     }
-
     match_index = abs(match_count + match_index - 1) % match_count;
     search_move();
 }

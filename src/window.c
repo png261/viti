@@ -10,7 +10,6 @@
 #include "memory.h"
 
 #include <string.h>
-#include <panel.h>
 
 
 Win *curwin;
@@ -18,17 +17,17 @@ extern Buffer *curbuf;
 extern char *search_query;
 
 
+void update_top_line(Win *win, int yoff)
+{
+     win->top_line = line_at(win->buf->lines, yoff);  
+}
+
 void win_scroll(Win *win) 
 {
     Buffer *buf = win->buf;
 
     LIMIT(buf->curline, 0, buf->nlines - 1);
-
-    Line *line = current_line(win);
-    if(line == NULL) {
-        return;
-    }
-    LIMIT(buf->curcol, 0, line->size);
+    LIMIT(buf->curcol, 0, buf->current_line->size);
 
     if (buf->curcol < win->view.xoff) {
         win->view.xoff = buf->curcol;
@@ -41,10 +40,12 @@ void win_scroll(Win *win)
 
     if (buf->curline < win->view.yoff) {
         win->view.yoff = buf->curline;
+        update_top_line(win, win->view.yoff);
         win_render_lines(win);
     }
     if (buf->curline >= win->view.yoff + win->textarea_lines) {
         win->view.yoff = buf->curline - win->textarea_lines + 1;
+        update_top_line(win, win->view.yoff);
         win_render_lines(win);
     }
 }
@@ -53,12 +54,6 @@ void win_scroll(Win *win)
 int buffer_progress(Win *win)
 {
     return (int)((float)(win->buf->curline + 1) / win->buf->nlines * 100);
-}
-
-
-Line *current_line(Win *win) 
-{ 
-    return line_at(win->buf->lines, win->buf->curline);
 }
 
 
@@ -109,7 +104,7 @@ Win *win_create(Buffer *buf, const int height, const int width, const int y, con
 
 void print_lines(Win *win)
 {
-    Line *line = line_at(win->buf->lines, win->view.yoff);
+    Line *line = win->top_line;
 
     for (int y = 0; y < win->textarea_lines; y++) {
         if(line == NULL) {
@@ -123,7 +118,7 @@ void print_lines(Win *win)
 }
 
 
-void win_update_highlight(Win *win) 
+static void win_update_highlight(Win *win) 
 {
     if (!is_highlight || search_query == NULL) {
         return;
@@ -152,7 +147,7 @@ void win_render_lines(Win *win)
 }
 
 
-void relative_number(Win *win, int y) 
+static void relative_number(Win *win, int y) 
 {
     Buffer *buf = win->buf; 
     char num[20];

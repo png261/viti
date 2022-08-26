@@ -4,9 +4,10 @@
 #include "util.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 
-int is_highlight = true;
+bool is_highlight = true;
 
 void highlight_line(WINDOW *win, char * line, const char *query, int color_pair, int y) 
 {

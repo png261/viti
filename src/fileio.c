@@ -49,6 +49,7 @@ void file_open(char *filename, Buffer *buf)
         line_push(&buf->lines, content, size);
         buf->nlines++;
     }
+    buf->current_line = buf->lines;
 
     free(content);
     fclose(fp);
