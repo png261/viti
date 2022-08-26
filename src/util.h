@@ -14,4 +14,6 @@
 void die(const char *errstr, ...);
 void quit();
 
+int countLines(const char *filename);
+size_t trim(char *str); 
 #endif

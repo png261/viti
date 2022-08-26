@@ -26,3 +26,28 @@ void quit()
     exit(0);
 }
 
+int countLines(const char *filename) 
+{
+    FILE *fp = fopen(filename, "r");
+    char *line = NULL;
+    size_t linecap = 0;
+    int count = 0;
+    while ((getline(&line, &linecap, fp)) != -1) {
+        count++;
+    }
+
+    free(line);
+    fclose(fp);
+    return count;
+}
+
+
+size_t trim(char *str) 
+{
+    char *c = str + strlen(str) - 1;
+    while (*c == '\n' || *c == ' ') {
+        *c = '\0';
+    }
+    return strlen(str);
+}
+

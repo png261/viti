@@ -28,6 +28,11 @@ void ins_del_to_start()
 
 void ins_put_char(char c)
 {
+    Line *line = current_line(curwin); 
+    if(line == NULL) {
+        line_push(&curbuf->lines, NULL, 0);
+    } 
+
     edit_append_char(current_line(curwin), curbuf->curcol, c);
     win_render_lines(curwin);
     curbuf->curcol++;
@@ -65,6 +70,7 @@ void ins_break_line(Line * line)
 void ins_add_line_before(Line * line)
 {
     line_insert_before(&curbuf->lines, line, "", 0);
+    curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
     curbuf->curline++;
@@ -75,6 +81,7 @@ void ins_add_line_before(Line * line)
 void ins_add_line_after(Line * line)
 {
     line_insert_after(line, "", 0);
+    curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
     curbuf->curline++;

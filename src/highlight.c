@@ -8,17 +8,16 @@
 
 int is_highlight = true;
 
-
-void highlight_line(Win *win, Line *line, const char *query, int color_pair) 
+void highlight_line(WINDOW *win, char * line, const char *query, int color_pair, int y) 
 {
-    if(strlen(query) == 0 || line == NULL || line->size == 0) {
+    if(line == NULL || strlen(query) == 0) {
         return;
     }
 
     const int len = strlen(query);
-    char *match = line->content;
+    char *match = line;
     while ((match = strstr(match, query)) != NULL) {
-        mvwchgat(win->textarea, line - win->buf->lines - win->view.yoff, match - line->content, len, A_NORMAL, color_pair, NULL);
+        mvwchgat(win, y, match - line, len, A_NORMAL, color_pair, NULL);
         match += len;
     }
 }

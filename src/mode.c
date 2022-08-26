@@ -15,37 +15,38 @@
 extern Win *curwin;
 enum MODE State = MODE_NORMAL;
 
-
-void loopKey(enum MODE mode, void (*callback)(const int)) 
+void resize()
 {
-    while (1) {
-        int c = getch();
-        if(c == KEY_RESIZE){
+    win_resize(curwin, LINES - 1, COLS);
+    mess_resize();
+    refresh();
+    win_render(curwin);
+}
+
+void mode_loop(enum MODE mode, void (*handle_key)(const int)) 
+{
+    do {
+        const int c = getch();
+        if(c == KEY_RESIZE) {
             /* TODO: resize all windows when have mutil */
-            win_resize(curwin, LINES - 1, COLS);
-            mess_resize();
-            refresh();
-            win_render(curwin);
+            resize();
             continue;
         }
 
-        callback(c);
-        if (State != mode) {
-            break; 
-        }
+        handle_key(c);
     }
+    while(State == mode);
 }
 
 
-void mode_switch(enum MODE mode) 
+void mode_switch(int mode) 
 {
-    State = mode;
-    switch (State) {
+    switch (State = mode) {
         case MODE_NORMAL:
-            loopKey(MODE_NORMAL, normal_mode);
+            mode_loop(MODE_NORMAL, normal_mode);
             break;
         case MODE_INSERT:
-            loopKey(MODE_INSERT, insert_mode);
+            mode_loop(MODE_INSERT, insert_mode);
             break;
         case MODE_COMMAND:
             command_mode();

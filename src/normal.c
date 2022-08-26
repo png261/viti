@@ -11,6 +11,8 @@
 #include "window.h"
 #include "key.h"
 
+#include <ctype.h> 
+
 
 extern Win *curwin;
 extern Buffer *curbuf;
@@ -19,6 +21,7 @@ extern Buffer *curbuf;
 void nor_new_line_above()
 {
     line_insert_before(&curbuf->lines, current_line(curwin), NULL, 0);
+    curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
     cursor_refresh(curwin);
@@ -28,7 +31,9 @@ void nor_new_line_above()
 
 void nor_new_line_below()
 {
-    line_insert_after(current_line(curwin), NULL, 0);
+    Line *line = current_line(curwin);
+    line_insert_after(line, NULL, 0);
+    curbuf->nlines++;
     win_render_lines(curwin);
     curbuf->curcol = 0;
     curbuf->curline++;
@@ -61,6 +66,7 @@ void nor_del_end()
 void nor_del_line()
 {
     line_remove(&curbuf->lines, current_line(curwin));
+    curbuf->nlines--;
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
@@ -116,9 +122,36 @@ void nor_move_cursor(int lines)
     cursor_refresh(curwin);
 }
 
-void normal_mode(const int c) 
+void nor_go_top()
+{
+
+    curbuf->curline = 0;
+    win_scroll(curwin);
+    cursor_refresh(curwin);
+}
+
+void nor_go_bottom()
+{
+    curbuf->curline = curbuf->nlines;
+    win_scroll(curwin);
+    cursor_refresh(curwin);
+}
+
+void nor_show_info()
+{
+   mess_send("\"%s\" %d lines, --%d%%--", curbuf->file.name, curbuf->nlines, buffer_progress(curwin)); 
+}
+
+void nor_swapchar()
 {
     Line *line = current_line(curwin);
+    char *c =  &line->content[curbuf->curcol];
+    *c = islower(*c) ? toupper(*c) : tolower(*c);
+    win_render_lines(curwin);
+}
+
+void normal_mode(const int c) 
+{
     switch (c) {
         // MOVE
         case KEY_LEFT:
@@ -138,15 +171,11 @@ void normal_mode(const int c)
             cursor_up(curwin);
             break;
         case 'G':
-            curbuf->curline = curbuf->nlines;
-            win_scroll(curwin);
-            cursor_refresh(curwin);
+            nor_go_bottom();
             break;
         case 'g':
             if (getch() == 'g') {
-                curbuf->curline = 0;
-                win_scroll(curwin);
-                cursor_refresh(curwin);
+                nor_go_top();
             }
             break;
         case CTRL('d'):
@@ -160,6 +189,9 @@ void normal_mode(const int c)
             break;
         case CTRL('y'):
             nor_move_screen(+1);
+            break;
+        case CTRL('g'):
+            nor_show_info();
             break;
         case CTRL('o'):
             /* TODO move backword jump history */
@@ -215,7 +247,7 @@ void normal_mode(const int c)
             nor_replace_char();
             break;
         case 'S':
-            edit_del_str(line, 0, current_line(curwin)->size);
+            edit_del_str(current_line(curwin), 0, current_line(curwin)->size);
             mode_switch(MODE_INSERT);
             break;
         case 'J':
@@ -229,7 +261,7 @@ void normal_mode(const int c)
             mode_switch(MODE_INSERT);
             break;
         case 's':
-            edit_del_char(line, curbuf->curcol);
+            edit_del_char(current_line(curwin), curbuf->curcol);
             cursor_refresh(curwin);
             mode_switch(MODE_INSERT);
             break;
@@ -246,6 +278,9 @@ void normal_mode(const int c)
             break;
         case 'o':
             nor_new_line_below();
+            break;
+        case '~':
+            nor_swapchar();
             break;
 
         // MODE

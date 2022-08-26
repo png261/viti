@@ -65,8 +65,8 @@ void line_insert_after(Line *root, char *content, size_t size)
 
     Line *new = new_line(content, size);
     new->next = root->next;
-    new->prev = root;
     root->next = new;
+    new->prev = root;
     if(new->next != NULL){
         new->next->prev = new;
     }

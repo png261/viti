@@ -10,6 +10,6 @@ enum MODE {
 };
 
 
-void mode_switch(enum MODE mode);
+void mode_switch(int mode);
 
 #endif

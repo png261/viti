@@ -14,6 +14,7 @@
 
 
 Win *curwin;
+extern Buffer *curbuf;
 extern char *search_query;
 
 
@@ -21,7 +22,7 @@ void win_scroll(Win *win)
 {
     Buffer *buf = win->buf;
 
-    LIMIT(buf->curline, 0, buf->nlines - 2); //TODO: check number 2
+    LIMIT(buf->curline, 0, buf->nlines - 1);
 
     Line *line = current_line(win);
     if(line == NULL) {
@@ -128,14 +129,10 @@ void win_update_highlight(Win *win)
         return;
     }
 
-    Buffer *buf = win->buf;
-    Line *line = line_at(buf->lines, win->view.yoff);
+    char line[win->textarea_cols];
     for (int y = 0; y <  win->textarea_lines; y++) {
-        if(line == NULL) {
-            return;
-        }
-        highlight_line(win, line, search_query, PAIR_HIGHLIGHT);
-        line = line->next;
+        mvwinnstr(win->textarea, y, 0, line, win->textarea_cols); 
+        highlight_line(win->textarea, line, search_query, PAIR_HIGHLIGHT, y);
     }
 }
 
@@ -144,8 +141,10 @@ void win_render_lines(Win *win)
 {
     werase(win->textarea);
 
+    curbuf->nlines = MAX(1, curbuf->nlines);
+
     print_lines(win);
-    /* win_update_highlight(win); */
+    win_update_highlight(win);
     win_scroll(win);
     cursor_refresh(win);
 

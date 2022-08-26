@@ -3,8 +3,8 @@
 
 #include "buffer.h"
 
-#ifndef TYPEDEF_BUFFER
-#define TYPEDEF_BUFFER
+#ifndef INCLUDE_TYPEDEF_BUFFER
+#define INCLUDE_TYPEDEF_BUFFER
 typedef struct buffer Buffer;
 #endif 
 

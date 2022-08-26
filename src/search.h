@@ -3,8 +3,8 @@
 
 #include "window.h"
 
-#ifndef TYPEDEF_WIN
-#define TYPEDEF_WIN
+#ifndef INCLUDE_TYPEDEF_WINDOW
+#define INCLUDE_TYPEDEF_WINDOW
 typedef struct window Win;
 #endif 
 

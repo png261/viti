@@ -3,13 +3,13 @@
 
 #include "window.h" 
 
-#ifndef TYPEDEF_WIN
-#define TYPEDEF_WIN
+#ifndef INCLUDE_TYPEDEF_WINDOW
+#define INCLUDE_TYPEDEF_WINDOW
 typedef struct window Win;
 #endif 
 
 extern int is_highlight; 
 
-void highlight_line(Win * win, Line *line, const char* query, int color_pair);
+void highlight_line(WINDOW * win, char *line, const char* query, int color_pair, int y);
 
 #endif
