@@ -17,6 +17,7 @@ extern char *search_query;
 extern int matched_index;
 extern int matched_count;
 
+
 void search_mode();
 void search_next();
 void search_prev();

@@ -24,6 +24,7 @@ int countLines(const char *filename)
     return count;
 }
 
+
 size_t trim(char *str) 
 {
     char *c = str + strlen(str) - 1;
@@ -32,6 +33,7 @@ size_t trim(char *str)
     }
     return strlen(str);
 }
+
 
 void file_save(char *filename, Buffer *buf) 
 {
@@ -54,6 +56,7 @@ void file_save(char *filename, Buffer *buf)
     fclose(fp);
 }
 
+
 void file_open(char *filename, Buffer *buf) 
 {
     FILE *fp = fopen(filename, "r");
@@ -66,7 +69,6 @@ void file_open(char *filename, Buffer *buf)
     char *content = NULL;
     size_t linecap = 0;
 
-    /* TODO: fix slow load file */
     while ((getline(&content, &linecap, fp)) != -1) {
         size_t size = trim(content); 
         line_push(&buf->lines, content, size);

@@ -8,8 +8,8 @@
 void cursor_refresh(Win *win)
 {
     win_scroll(win);
-    /* win_render_numbercol(win); */
-    /* win_render_statusline(win); */
+    win_render_numbercol(win);
+    win_render_statusline(win);
 
     int y = win->buf->curline - win->view.yoff;
     int x = win->buf->curcol - win->view.xoff;

@@ -10,9 +10,11 @@
 
 #include <string.h>
 
+
 extern Win *curwin;
 extern Buffer *curbuf;
 extern int is_highlight;
+
 
 void command_mode() 
 {

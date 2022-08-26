@@ -9,6 +9,7 @@ enum MODE {
     MODE_PROMPT,
 };
 
+
 void mode_switch(enum MODE mode);
 
 #endif

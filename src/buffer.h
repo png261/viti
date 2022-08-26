@@ -30,11 +30,11 @@ struct buffer {
 };
 
 Buffer * buffer_create();
-Line *line_push(Line **line, char *content, size_t size);
-Line * new_line(Line *prev, char *content, size_t size);
+void line_push(Line** head_ref, char *content, size_t size);
 Line *line_at(Line *line, int at);
-void line_insert(Line *prev, char *content, size_t size);
-Line *line_insert_after(Line **line, char *content, size_t size);
 void line_remove(Line ** head, Line *del);
+void line_add_first(Line ** head, char *content, size_t size);
+void line_insert_after(Line *prev, char *content, size_t size);
+void line_insert_before(Line ** head_ref, Line * root, char * content, size_t size);
 
 #endif

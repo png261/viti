@@ -13,8 +13,8 @@
 
 
 extern Win *curwin;
-
 enum MODE State = MODE_NORMAL;
+
 
 void loopKey(enum MODE mode, void (*callback)(const int)) 
 {
@@ -36,21 +36,22 @@ void loopKey(enum MODE mode, void (*callback)(const int))
     }
 }
 
+
 void mode_switch(enum MODE mode) 
 {
     State = mode;
     switch (State) {
-    case MODE_NORMAL:
-        loopKey(MODE_NORMAL, normal_mode);
-        break;
-    case MODE_INSERT:
-        loopKey(MODE_INSERT, insert_mode);
-        break;
-    case MODE_COMMAND:
-        command_mode();
-        break;
-    case MODE_SEARCH:
-        search_mode();
-        break;
+        case MODE_NORMAL:
+            loopKey(MODE_NORMAL, normal_mode);
+            break;
+        case MODE_INSERT:
+            loopKey(MODE_INSERT, insert_mode);
+            break;
+        case MODE_COMMAND:
+            command_mode();
+            break;
+        case MODE_SEARCH:
+            search_mode();
+            break;
     }
 }

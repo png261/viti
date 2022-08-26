@@ -11,12 +11,15 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+#include <unistd.h>
+
 
 extern Message mess;
 extern Win *curwin;
 extern Buffer *curbuf;
 
-/* setup */
+
 void ncurses_init() 
 {
     initscr();
@@ -25,6 +28,7 @@ void ncurses_init()
     noecho();
     keypad(stdscr, TRUE);
 }
+
 
 void init() 
 {
@@ -37,7 +41,7 @@ void init()
     refresh();
 }
 
-/* main */
+
 int main(int argc, char *argv[]) 
 {
     init();

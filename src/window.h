@@ -13,6 +13,11 @@
     typedef struct Line Line;
 #endif 
 
+#ifndef TYPEDEF_WIN
+#define TYPEDEF_WIN
+typedef struct window Win;
+#endif 
+
 typedef struct View{
     int xoff;
     int yoff;
@@ -31,10 +36,6 @@ struct window{
     WINDOW *numbercol;
 };
 
-#ifndef TYPEDEF_WIN
-#define TYPEDEF_WIN
-typedef struct window Win;
-#endif 
 
 Win *win_resize(Win * win, const int height, const int width); 
 Win *win_create(Buffer * buf, const int height, const int width, const int y, const int x);
@@ -42,7 +43,6 @@ void win_render(Win * win);
 void win_render_numbercol(Win * win); 
 void win_render_lines(Win * win); 
 void win_render_statusline(Win * buf); 
-void win_render_line(Win * win, Line *line);
 
 void win_scroll(Win *win);
 

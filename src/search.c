@@ -9,6 +9,8 @@
 #include "message.h"
 #include "mode.h"
 #include "window.h"
+#include "window.h"
+#include "key.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +31,7 @@ char *search_query = NULL;
 Pos *match_list_old;
 char *search_query_old;
 
+
 /* TODO free */
 void search_callback(const char *query, const int c) 
 {
@@ -36,7 +39,7 @@ void search_callback(const char *query, const int c)
         win_render_lines(curwin);
         return;
     }
-    if (c == '\x1b') {
+    if (c == ESC) {
         match_list = match_list_old;
         search_query = search_query_old;
         win_render_lines(curwin);
@@ -50,6 +53,7 @@ void search_callback(const char *query, const int c)
     search(curwin, query);
 }
 
+
 void search_mode() 
 {
     match_list_old = match_list;
@@ -59,6 +63,7 @@ void search_mode()
     prompt("/%s", search_callback);
     mode_switch(MODE_NORMAL);
 }
+
 
 void search_move() 
 {
@@ -74,25 +79,24 @@ void search_move()
     cursor_refresh(curwin);
 }
 
+
 int  search_count(Win * win, const char * query)
 {
     Buffer *buf = win->buf;
     int count = 0;
-    for (int y = 0; y < buf->nlines; y++) {
-        Line *line = &buf->lines[y];
-        if(line == NULL) {
-           break; 
-        }
-
+    Line *line = buf->lines;
+    while(line != NULL){
         char *match = line->content;
         while ((match = strstr(match, query)) != NULL) {
             count++;
             match += strlen(query);
         }
+        line = line->next;
     }
 
     return count; 
 }
+
 
 void search(Win *win, const char *query) 
 {
@@ -115,9 +119,10 @@ void search(Win *win, const char *query)
     /* find all pos */
     const int len = strlen(query);
     match_list = xrealloc(match_list, match_count * sizeof(*match_list));
+    Line *line = buf->lines;
+    int y = 0;
     Pos *pos = match_list;
-    for (int y = 0; y < buf->nlines; y++) {
-        Line *line = &buf->lines[y];
+    while(line != NULL){
         char *match = line->content;
 
         while ((match = strstr(match, query)) != NULL) {
@@ -126,10 +131,13 @@ void search(Win *win, const char *query)
             pos++;
             match += len;
         }
+        y++;
+        line = line->next;
     }
     win_render_lines(curwin);
     search_move();
 }
+
 
 void search_next() 
 {
@@ -140,6 +148,7 @@ void search_next()
     match_index = (match_index + 1) % match_count;
     search_move();
 }
+
 
 void search_prev() 
 {

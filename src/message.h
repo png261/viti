@@ -3,10 +3,12 @@
 
 #include <ncurses.h>
 
+
 typedef struct message{
     char content[128];
     WINDOW *win;
 } Message;
+
 
 void mess_resize();
 void mess_send(const char *format, ...);

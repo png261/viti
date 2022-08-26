@@ -18,6 +18,7 @@ void die(const char *errstr, ...)
     exit(1);
 }
 
+
 void quit() 
 {
     clear();

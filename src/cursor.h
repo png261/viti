@@ -3,6 +3,7 @@
 
 #include "window.h"
 
+
 #ifndef TYPEDEF_WIN
 #define TYPEDEF_WIN
 typedef struct window Win;
@@ -14,5 +15,6 @@ void cursor_left(Win * win);
 void cursor_right(Win * win);
 void cursor_up(Win * win);
 void cursor_down(Win * win);
+
 #endif
 

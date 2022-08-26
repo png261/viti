@@ -3,6 +3,7 @@
 #include "util.h"
 #include "window.h"
 #include "memory.h"
+#include "key.h"
 
 #include <ncurses.h>
 #include <stdarg.h>
@@ -20,6 +21,7 @@ void mess_resize(){
     refresh();
 }
 
+
 void mess_send(const char *format, ...) 
 {
     wclear(mess.win);
@@ -32,6 +34,7 @@ void mess_send(const char *format, ...)
     wrefresh(mess.win);
     touchwin(curwin->textarea);
 }
+
 
 char *prompt(const char *format, void (*callback)(const char *, int)) 
 {
@@ -49,7 +52,7 @@ char *prompt(const char *format, void (*callback)(const char *, int))
             }
             return str;
         }
-        if (c == '\x1b') {
+        if (c == ESC) {
             mess_send("");
             if (callback) {
                 callback(str, c);
