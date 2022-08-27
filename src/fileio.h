@@ -5,10 +5,10 @@
 
 #ifndef INCLUDE_TYPEDEF_BUFFER
 #define INCLUDE_TYPEDEF_BUFFER
-typedef struct buffer Buffer;
+    typedef struct buffer Buffer;
 #endif 
 
 void file_open(char *filename, Buffer *buf);
 void file_save(char *filename, Buffer *buf);
 
-#endif
+#endif // VITI_FILEIO_H

@@ -63,8 +63,8 @@ static void search_move()
     }
 
     mess_send("/%s [%d/%d]", search_query, match_index, match_count);
-    curbuf->curcol = matched->x;
-    curbuf->curline = matched->y;
+    curbuf->icol = matched->x;
+    curbuf->iline = matched->y;
     win_scroll(curwin);
     cursor_refresh(curwin);
 }
@@ -74,7 +74,7 @@ static int search_count(Win * win, const char * query)
 {
     Buffer *buf = win->buf;
     int count = 0;
-    Line *line = buf->lines;
+    Line *line = buf->head;
     while(line != NULL){
         char *match = line->content;
         while ((match = strstr(match, query)) != NULL) {
@@ -122,7 +122,7 @@ void search(Win *win, const char *query)
     int y = 0;
     Pos *pos = match_list;
     char *match; 
-    Line *line = buf->lines;
+    Line *line = buf->head;
     while(line != NULL){
         match = line->content;
         while ((match = strstr(match, query)) != NULL) {

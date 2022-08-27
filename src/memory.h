@@ -8,4 +8,4 @@ void *xrealloc(void *p, const size_t len);
 void *xcalloc(const size_t n, const size_t len);
 void *xmalloc(const size_t len);
 
-#endif
+#endif // VITI_MEMORY_H

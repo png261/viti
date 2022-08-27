@@ -11,9 +11,10 @@
 #define LIMIT(X, MIN, MAX)		((X) = (X) < (MIN) ? (MIN) : (X) > (MAX) ? (MAX) : (X))
 
 
-void die(const char *errstr, ...);
-void quit();
+void viti_die(const char *errstr, ...);
+void viti_quit();
 
 int countLines(const char *filename);
 size_t trim(char *str); 
-#endif
+
+#endif // VITI_UTIL_H

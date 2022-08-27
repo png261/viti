@@ -42,6 +42,14 @@ static void init()
 }
 
 
+void check_line()
+{
+    if(curbuf->nlines == 0) {
+        line_push(&curbuf->head, &curbuf->tail, NULL, 0);
+        curbuf->nlines = 1;
+    }
+}
+
 int main(int argc, char *argv[]) 
 {
     init();
@@ -50,9 +58,10 @@ int main(int argc, char *argv[])
         file_open(argv[1],curbuf);
     }
 
-    update_top_line(curwin, 0);
+    check_line();
+    update_top_line(curwin);
     win_render(curwin);
     cursor_refresh(curwin);
     mode_switch(MODE_NORMAL);
-    quit();
+    viti_quit();
 }

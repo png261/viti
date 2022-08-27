@@ -6,13 +6,9 @@
 
 #ifndef INCLUDE_TYPEDEF_BUFFER
 #define INCLUDE_TYPEDEF_BUFFER
-typedef struct buffer Buffer;
-typedef struct Line Line;
+    typedef struct buffer Buffer;
+    typedef struct Line Line;
 #endif 
-
-typedef struct File {
-    char * name;
-} File;
 
 struct Line {
     char *content;
@@ -22,21 +18,21 @@ struct Line {
 };
 
 struct buffer {
-    Line *lines;
-    Line *current_line;
+    Line *head;
+    Line *tail;
+    Line *curline;
+    int iline;
+    int icol;
     int nlines;
-    File file;
-    int curline;
-    int curcol;
+    char * name;
 };
 
 Buffer * buffer_create();
-void line_push(Line** head_ref, char *content, size_t size);
+void line_push(Line **head, Line **tail, char *content, size_t size);
 Line *line_at(Line *line, int at);
-void line_remove(Line ** head, Line *del);
-void line_add_first(Line ** head, char *content, size_t size);
-void line_insert_after(Line *prev, char *content, size_t size);
-void line_insert_before(Line ** head_ref, Line * root, char * content, size_t size);
+void line_remove(Line **head, Line **tail, Line *del);
+void line_insert_after(Line *prev, Line **tail, char *content, size_t size);
+void line_insert_before(Line ** head, Line *root, char *content, size_t size);
 
-void update_current_line(Buffer *buf);
-#endif
+int buffer_progress(Buffer *buf);
+#endif // VITI_BUFFER_H

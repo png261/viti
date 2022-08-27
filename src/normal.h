@@ -3,4 +3,4 @@
 
 void normal_mode(const int c);
 
-#endif
+#endif // VITI_NORMAL_H

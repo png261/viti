@@ -53,7 +53,7 @@ char *edit_del_str(Line * line, int start, int len)
 
 void edit_del_line(Line *line) 
 {
-    line_remove(&curbuf->lines, line);
+    line_remove(&curbuf->head, &curbuf->tail, line);
     curbuf->nlines--;
 }
 

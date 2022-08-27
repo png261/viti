@@ -19,4 +19,4 @@ void edit_break_line(Line *line, int col);
 char * edit_del_end(Line *line,int col);
 char * edit_del_str(Line *line, int start, int len); 
 
-#endif
+#endif // VITI_EDIT_H
