@@ -1,6 +1,6 @@
-#ifndef VIIT_INSERT_H
+#ifndef VITI_INSERT_H
 #define VITI_INSERT_H
 
 void insert_mode(const int c);
 
-#endif
+#endif // VITI_INSERT_H

@@ -4,4 +4,4 @@
 #define ESC     '\x1b'
 #define CTRL(k) ((k)&0x1f)
 
-#endif
+#endif // VITI_KEY_H

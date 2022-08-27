@@ -13,12 +13,15 @@ Buffer * curbuf;
 Buffer *buffer_create() 
 {
     Buffer *buf = xmalloc(sizeof(*buf));
-    buf->curline = 0;
-    buf->curcol = 0;
-    buf->nlines = 1;
-    buf->file.name = NULL;
-    buf->lines = NULL;
-    buf->current_line = NULL;
+    buf->head = NULL;
+    buf->tail = NULL;
+    buf->curline = NULL;
+
+    buf->iline = 0;
+    buf->icol = 0;
+
+    buf->nlines = 0;
+    buf->name = NULL;
     return buf;
 }
 
@@ -35,17 +38,16 @@ static Line * new_line(char *content, size_t size)
 }
 
 
-void line_push(Line** head_ref, char *content, size_t size)
+void line_push(Line **head, Line **tail, char *content, size_t size)
 {
-    static Line *current = NULL;
-    Line *new_node = new_line(content, size);
-    if(*head_ref == NULL) {
-        *head_ref = new_node;
+    Line *new = new_line(content, size);
+    if(*head == NULL) {
+        *head = new;
     } else {
-        current->next = new_node;
-        new_node->prev = current;
+        (*tail)->next = new;
+        new->prev = *tail;
     }
-    current = new_node;
+    *tail  = new;
 }
 
 
@@ -62,7 +64,7 @@ Line *line_at(Line *line, int at)
 }
 
 
-void line_insert_after(Line *root, char *content, size_t size)
+void line_insert_after(Line *root, Line **tail, char *content, size_t size)
 {
     if(root == NULL) {
         return;
@@ -72,39 +74,31 @@ void line_insert_after(Line *root, char *content, size_t size)
     new->next = root->next;
     root->next = new;
     new->prev = root;
-    if(new->next != NULL){
+    if(root == *tail){
+        *tail = new;
+    } else {
         new->next->prev = new;
     }
 }
 
 
-void line_insert_before(Line ** head_ref, Line * root, char * content, size_t size)
+void line_insert_before(Line ** head, Line * root, char * content, size_t size)
 {
     if(root == NULL) {
         return;
     }
     Line *new = new_line(content, size);
     new->next = root;
-    if(root->prev != NULL) {
+    if(root == *head) {
+        *head = new;
+    } else {
         new->prev = root->prev;
         new->prev->next = new;
-    } else {
-        *head_ref = new;
     } 
     root->prev = new;
 }
 
-
-void line_add_first(Line ** head, char *content, size_t size)
-{
-    Line * new = new_line(content, size);
-    new->next = (*head);
-    (*head)->next->prev = new;
-    (*head) = new;
-}
-
-
-void free_line(Line *line)
+static void free_line(Line *line)
 {
     line->size = 0;
     free(line->content);
@@ -112,30 +106,29 @@ void free_line(Line *line)
 }
 
 
-void line_remove(Line ** head, Line *del)
+void line_remove(Line ** head, Line **tail, Line *del)
 {
     if(*head == NULL || del == NULL) {
         return;
     }
     
-    if(*head == del) {
+    if(del == *head) {
         *head = del->next;
+    } else {
+        del->prev->next = del->next;
     }
 
-    if(del->next != NULL) {
+    if(del == *tail) {
+        *tail = del->prev; 
+    } else {
         del->next->prev = del->prev;
-    } 
-
-    if(del->prev != NULL) {
-        del->prev->next = del->next;
-    } 
+    }
 
     free_line(del);
 }
 
 
-void update_current_line(Buffer *buf)
+int buffer_progress(Buffer *buf)
 {
-    buf->current_line = line_at(buf->lines, buf->curline);
+    return (int)((float)(buf->iline + 1) / buf->nlines * 100);
 }
-

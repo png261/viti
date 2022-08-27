@@ -5,7 +5,7 @@
 
 #ifndef INCLUDE_TYPEDEF_WINDOW
 #define INCLUDE_TYPEDEF_WINDOW
-typedef struct window Win;
+    typedef struct window Win;
 #endif 
 
 typedef struct Pos{
@@ -17,4 +17,4 @@ void search_next();
 void search_prev();
 void search(Win * win, const char * query);
 
-#endif
+#endif // VITI_SEARCH_H

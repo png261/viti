@@ -1,4 +1,4 @@
-#ifndef VIIT_MODE_H
+#ifndef VITI_MODE_H
 #define VITI_MODE_H
 
 enum MODE {
@@ -12,4 +12,4 @@ enum MODE {
 
 void mode_switch(int mode);
 
-#endif
+#endif // VITI_MODE_H

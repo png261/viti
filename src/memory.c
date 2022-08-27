@@ -12,7 +12,7 @@ void *xrealloc(void *p, const size_t len)
 {
     p = realloc(p, len);
     if (p == NULL) {
-        die("realloc: %s\n", strerror(errno));
+        viti_die("realloc: %s\n", strerror(errno));
     }
     return p;
 }
@@ -22,7 +22,7 @@ void *xcalloc(const size_t n, const size_t len)
 {
     void *p = calloc(n, len);
     if (p == NULL) {
-        die("calloc: %s\n", strerror(errno));
+        viti_die("calloc: %s\n", strerror(errno));
     }
     return p;
 }
@@ -32,7 +32,7 @@ void *xmalloc(const size_t len)
 {
     void *p = malloc(len);
     if (p == NULL) {
-        die("malloc: %s\n", strerror(errno));
+        viti_die("malloc: %s\n", strerror(errno));
     }
     return p;
 }

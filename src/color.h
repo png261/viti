@@ -13,5 +13,4 @@ enum PAIR_COLOR
 
 void color_init();
 
-#endif
-
+#endif // VITI_COLOR_H

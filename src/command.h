@@ -3,4 +3,4 @@
 
 void command_mode();
 
-#endif
+#endif // VITI_COMMAND_H

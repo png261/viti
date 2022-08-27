@@ -64,7 +64,7 @@ CFLAGS = -O3 $(STD) $(STACK) $(WARNS)
 DEBUG = -g3 -DDEBUG=1
 
 # Dependency libraries
-LIBS = -lm -lncurses -lpanel 
+LIBS = -lm -lncurses 
 
 # %.o file names
 NAMES = $(notdir $(basename $(wildcard $(SRCDIR)/*.$(SRCEXT))))

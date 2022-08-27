@@ -6,7 +6,7 @@
 
 #ifndef INCLUDE_TYPEDEF_WINDOW
 #define INCLUDE_TYPEDEF_WINDOW
-typedef struct window Win;
+    typedef struct window Win;
 #endif 
 
 
@@ -16,5 +16,5 @@ void cursor_right(Win * win);
 void cursor_up(Win * win);
 void cursor_down(Win * win);
 
-#endif
+#endif // VITI_CURSOR_H
 

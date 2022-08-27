@@ -19,11 +19,12 @@ extern Buffer *curbuf;
 
 static void nor_new_line_above()
 {
-    line_insert_before(&curbuf->lines, curbuf->current_line, NULL, 0);
+    line_insert_before(&curbuf->head, curbuf->curline, NULL, 0);
     curbuf->nlines++;
+    curbuf->icol = 0;
+    curbuf->curline = curbuf->curline->prev;
+    update_top_line(curwin);
     win_render_lines(curwin);
-    curbuf->curcol = 0;
-    update_current_line(curbuf);
     cursor_refresh(curwin);
     mode_switch(MODE_INSERT);
 }
@@ -31,13 +32,13 @@ static void nor_new_line_above()
 
 static void nor_new_line_below()
 {
-    Line *line = curbuf->current_line;
-    line_insert_after(line, NULL, 0);
+    Line *line = curbuf->curline;
+    line_insert_after(line, &curbuf->tail, NULL, 0);
     curbuf->nlines++;
+    curbuf->icol = 0;
+    curbuf->iline++;
+    curbuf->curline = curbuf->curline->next;
     win_render_lines(curwin);
-    curbuf->curcol = 0;
-    curbuf->curline++;
-    update_current_line(curbuf);
     cursor_refresh(curwin);
     mode_switch(MODE_INSERT);
 }
@@ -45,8 +46,8 @@ static void nor_new_line_below()
 
 static void nor_join_line()
 {
-    Line *line = curbuf->current_line;
-    curbuf->curcol = line->size;
+    Line *line = curbuf->curline;
+    curbuf->icol = line->size;
     edit_join_line(line); 
     win_render_lines(curwin);
     cursor_refresh(curwin);
@@ -55,18 +56,20 @@ static void nor_join_line()
 
 static void nor_del_end() 
 {
-    Line * line = curbuf->current_line;
+    Line * line = curbuf->curline;
     if(line == NULL) {
         return;
     }
-    edit_del_str(line, curbuf->curcol, line->size - curbuf->curcol);
+    edit_del_str(line, curbuf->icol, line->size - curbuf->icol);
     win_render_lines(curwin);
 }
 
 
 static void nor_del_line()
 {
-    line_remove(&curbuf->lines, curbuf->current_line);
+    line_remove(&curbuf->head, &curbuf->tail, curbuf->curline);
+    update_top_line(curwin);
+    curbuf->curline = curbuf->curline->next;
     curbuf->nlines--;
     win_render_lines(curwin);
     cursor_refresh(curwin);
@@ -80,15 +83,15 @@ static void nor_replace_char()
     if(c == ESC) {
         return;
     }
-    Line *line = curbuf->current_line;
-    line->content[curbuf->curcol] = c;
+    Line *line = curbuf->curline;
+    line->content[curbuf->icol] = c;
     win_render_lines(curwin);
 }
 
 
 static void nor_del_char()
 {
-    edit_del_char(curbuf->current_line, curbuf->curcol);
+    edit_del_char(curbuf->curline, curbuf->icol);
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
@@ -96,39 +99,39 @@ static void nor_del_char()
 
 static void nor_move_end_line()
 {
-    curbuf->curcol = curbuf->current_line->size;
+    curbuf->icol = curbuf->curline->size;
     cursor_refresh(curwin);
 }
 
 
 static void nor_move_start_line()
 {
-    curbuf->curcol = 0;
+    curbuf->icol = 0;
     cursor_refresh(curwin);
 }
 
 static void nor_move_screen(int lines)
 {
-    curwin->view.yoff += lines;
-    curbuf->curline+= lines;
-    LIMIT(curwin->view.yoff, 0, curbuf->nlines - 1);
-    LIMIT(curbuf->curline, 0, curbuf->nlines - 1);
-    mess_send("%d", curbuf->curline);
+    /* TODO: fix */
+    curwin->yoff += lines;
+    curbuf->iline+= lines;
+    LIMIT(curwin->yoff, 0, curbuf->nlines - 1);
+    LIMIT(curbuf->iline, 0, curbuf->nlines - 1);
     win_render_lines(curwin);
 }
 
 static void nor_move_cursor(int lines)
 {
-    curbuf->curline = curwin->view.yoff + lines;
+    curbuf->iline = curwin->yoff + lines;
     cursor_refresh(curwin);
 }
 
 static void nor_go_top()
 {
 
-    curbuf->curline = 0;
+    curbuf->iline = 0;
+    curbuf->curline = curbuf->head;
     win_scroll(curwin);
-    update_current_line(curbuf);
     win_render_numbercol(curwin);
     win_render_statusline(curwin);
     cursor_refresh(curwin);
@@ -136,10 +139,9 @@ static void nor_go_top()
 
 static void nor_go_bottom()
 {
-    curbuf->curline = curbuf->nlines - 1;
-    curbuf->current_line = line_at(curbuf->lines, curbuf->curline);
+    curbuf->iline = curbuf->nlines - 1;
+    curbuf->curline = curbuf->tail;
     win_scroll(curwin);
-    update_current_line(curbuf);
     win_render_numbercol(curwin);
     win_render_statusline(curwin);
     cursor_refresh(curwin);
@@ -147,13 +149,13 @@ static void nor_go_bottom()
 
 static void nor_show_info()
 {
-   mess_send("\"%s\" %d lines, --%d%%--", curbuf->file.name, curbuf->nlines, buffer_progress(curwin)); 
+   mess_send("\"%s\" %d lines, --%d%%--", curbuf->name, curbuf->nlines, buffer_progress(curbuf)); 
 }
 
 static void nor_swapchar()
 {
-    Line *line = curbuf->current_line;
-    char *c =  &line->content[curbuf->curcol];
+    Line *line = curbuf->curline;
+    char *c =  &line->content[curbuf->icol];
     *c = islower(*c) ? toupper(*c) : tolower(*c);
     win_render_lines(curwin);
 }
@@ -187,10 +189,10 @@ void normal_mode(const int c)
             }
             break;
         case CTRL('d'):
-            nor_move_screen(+curwin->textarea_lines / 2);
+            nor_move_screen(+curwin->wtext_lines / 2);
             break;
         case CTRL('u'):
-            nor_move_screen(-curwin->textarea_lines / 2);
+            nor_move_screen(-curwin->wtext_lines / 2);
             break;
         case CTRL('e'):
             nor_move_screen(-1);
@@ -211,16 +213,21 @@ void normal_mode(const int c)
             nor_move_cursor(0);
             break;
         case 'M':
-            nor_move_cursor(curwin->textarea_lines / 2 - 1);
+            nor_move_cursor(curwin->wtext_lines / 2 - 1);
             break;
         case 'L':
-            nor_move_cursor(curwin->textarea_lines - 1);
+            nor_move_cursor(curwin->wtext_lines - 1);
             break;
         case 'w':
             /* TODO move word by word */
             break;
         case 'e':
             /* TODO move end of word */
+            break;
+        case 'Z':
+            if(getch() == 'Q') {
+                viti_quit();
+            }
             break;
         case '0':
             nor_move_start_line();
@@ -254,7 +261,7 @@ void normal_mode(const int c)
             nor_replace_char();
             break;
         case 'S':
-            edit_del_str(curbuf->current_line, 0, curbuf->current_line->size);
+            edit_del_str(curbuf->curline, 0, curbuf->curline->size);
             mode_switch(MODE_INSERT);
             break;
         case 'J':
@@ -268,7 +275,7 @@ void normal_mode(const int c)
             mode_switch(MODE_INSERT);
             break;
         case 's':
-            edit_del_char(curbuf->current_line, curbuf->curcol);
+            edit_del_char(curbuf->curline, curbuf->icol);
             cursor_refresh(curwin);
             mode_switch(MODE_INSERT);
             break;

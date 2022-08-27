@@ -11,13 +11,13 @@
 void file_save(char *filename, Buffer *buf) 
 {
     if (filename == NULL) {
-        mess_send("No file name");
+        mess_send("No name");
         return;
     }
 
     FILE *fp = fopen(filename, "w+");
 
-    Line * line = buf->lines;
+    Line * line = buf->head;
     while(line != NULL){
         fputs(line->content, fp);
         line = line->next;
@@ -26,7 +26,7 @@ void file_save(char *filename, Buffer *buf)
         }
     }
 
-    mess_send("\"%s\" %dL written", buf->file.name, buf->nlines);
+    mess_send("\"%s\" %dL written", buf->name, buf->nlines);
     fclose(fp);
 }
 
@@ -34,7 +34,7 @@ void file_save(char *filename, Buffer *buf)
 void file_open(char *filename, Buffer *buf) 
 {
     FILE *fp = fopen(filename, "r");
-    buf->file.name = filename;
+    buf->name = filename;
 
     if (fp == NULL) {
         return;
@@ -42,14 +42,14 @@ void file_open(char *filename, Buffer *buf)
 
     char *content = NULL;
     size_t linecap = 0;
-    buf->nlines = 0;
 
     while ((getline(&content, &linecap, fp)) != -1) {
         size_t size = trim(content); 
-        line_push(&buf->lines, content, size);
+        line_push(&buf->head, &buf->tail, content, size);
         buf->nlines++;
     }
-    buf->current_line = buf->lines;
+
+    buf->curline = buf->head;
 
     free(content);
     fclose(fp);

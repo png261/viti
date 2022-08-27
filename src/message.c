@@ -32,7 +32,7 @@ void mess_send(const char *format, ...)
 
     waddstr(mess.win, mess.content);
     wrefresh(mess.win);
-    touchwin(curwin->textarea);
+    touchwin(curwin->wtext);
 }
 
 

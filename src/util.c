@@ -6,7 +6,7 @@
 #include <string.h>
 
 
-void die(const char *errstr, ...) 
+void viti_die(const char *errstr, ...) 
 {
     clear();
     endwin();
@@ -19,7 +19,7 @@ void die(const char *errstr, ...)
 }
 
 
-void quit() 
+void viti_quit() 
 {
     clear();
     endwin();

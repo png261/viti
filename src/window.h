@@ -15,30 +15,39 @@
 
 #ifndef INCLUDE_TYPEDEF_WINDOW
 #define INCLUDE_TYPEDEF_WINDOW
-typedef struct window Win;
+    typedef struct window Win;
 #endif 
 
-typedef struct View{
-    int xoff;
-    int yoff;
-} View;
+typedef struct size {
+    int lines;
+    int cols;
+} Size;
 
-struct window{
+struct window {
+    Size size;
+
     Buffer * buf;
     Line *top_line;
-    View view;
 
-    int textarea_lines;
-    int textarea_cols;
+    int xoff;
+    int yoff;
 
-    WINDOW *textarea;
-    WINDOW *statusline;
-    WINDOW *numbercol;
+    WINDOW *wtext;
+    int wtext_lines;
+    int wtext_cols;
+
+    WINDOW *wstatus;
+    int wstatus_lines;
+    int wstatus_cols;
+
+    WINDOW *wnum;
+    int wnum_lines;
+    int wnum_cols;
 };
 
 
-Win *win_resize(Win * win, const int height, const int width); 
-Win *win_create(Buffer * buf, const int height, const int width, const int y, const int x);
+Win *win_resize(Win * win, int lines, int cols); 
+Win *win_create(Buffer * buf, int lines, int cols, int y, int x);
 void win_render(Win * win); 
 void win_render_numbercol(Win * win); 
 void win_render_lines(Win * win); 
@@ -46,8 +55,6 @@ void win_render_statusline(Win * buf);
 
 void win_scroll(Win *win);
 
-void update_top_line(Win *win, int yoff); 
+void update_top_line(Win *win); 
 
-int buffer_progress(Win *win); 
-
-#endif
+#endif // VITI_WINDOW_H

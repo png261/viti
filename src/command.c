@@ -27,14 +27,14 @@ void command_mode()
     char filename[128];
 
     if (strcmp(query, "q") == 0) {
-        quit();
+        viti_quit();
     } else if (strcmp(query, "w") == 0) {
-        file_save(curbuf->file.name, curbuf);
+        file_save(curbuf->name, curbuf);
     } else if (strcmp(query, "noh") == 0) {
         is_highlight = false;
         win_render_lines(curwin);
     } else if (sscanf(query, "w %s", filename) == 1) {
-        curbuf->file.name = filename;
+        curbuf->name = filename;
         file_save(filename, curbuf);
         win_render_statusline(curwin);
     }
