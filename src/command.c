@@ -1,12 +1,12 @@
 #include "command.h"
 
+#include "buffer.h"
 #include "fileio.h"
 #include "message.h"
-#include "window.h"
-#include "buffer.h"
 #include "mode.h"
 #include "search.h"
 #include "util.h"
+#include "window.h"
 
 #include <string.h>
 

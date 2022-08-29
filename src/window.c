@@ -1,17 +1,16 @@
 #include "window.h"
 
-#include "color.h"
 #include "buffer.h"
+#include "color.h"
 #include "highlight.h"
-#include "message.h"
+#include "memory.h"
 #include "search.h"
 #include "stdlib.h"
 #include "util.h"
-#include "memory.h"
 
-#include <string.h>
 #include <math.h>
 #include <ncurses.h>
+#include <string.h>
 
 
 Win *curwin;

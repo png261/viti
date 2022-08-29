@@ -1,8 +1,8 @@
 #ifndef VITI_UTIL_H
 #define VITI_UTIL_H
 
-#include <stddef.h>
 #include <errno.h>
+#include <stddef.h>
 
 
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))

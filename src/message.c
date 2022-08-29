@@ -1,9 +1,9 @@
 #include "message.h"
 
+#include "key.h"
+#include "memory.h"
 #include "util.h"
 #include "window.h"
-#include "memory.h"
-#include "key.h"
 
 #include <ncurses.h>
 #include <stdarg.h>

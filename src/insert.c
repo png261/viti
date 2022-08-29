@@ -7,7 +7,6 @@
 #include "mode.h"
 #include "util.h"
 #include "window.h"
-#include "message.h"
 
 #include <ncurses.h>
 #include <string.h>

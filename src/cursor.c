@@ -1,7 +1,6 @@
 #include "cursor.h"
 
 #include "buffer.h"
-#include "message.h"
 #include "util.h"
 #include "window.h"
 

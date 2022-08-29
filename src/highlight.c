@@ -3,8 +3,8 @@
 #include "color.h"
 #include "util.h"
 
-#include <string.h>
 #include <stdbool.h>
+#include <string.h>
 
 
 bool is_highlight = true;
