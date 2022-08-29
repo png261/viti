@@ -29,73 +29,68 @@ static void ins_del_to_start()
 static void ins_put_char(char c)
 {
     edit_append_char(curbuf->curline, curbuf->icol, c);
-    win_render_lines(curwin);
     curbuf->icol++;
+    win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
+static void ins_join_line(){
+    if(curbuf->iline == 0)  {
+        return;
+    }
+    curbuf->icol = curbuf->curline->prev->size;
+    edit_join_line(curbuf->curline->prev);
+    curbuf->curline = curbuf->curline->prev;
+    curbuf->iline--;
+}
 
 static void ins_del_char()
 {
-    Line *line = curbuf->curline;
     if (curbuf->icol == 0) {
-        curbuf->icol = line->prev->size;
-        edit_join_line(line->prev);
-        curbuf->iline--;
+        ins_join_line();
     } else {
-        edit_del_char(line, curbuf->icol - 1); 
+        edit_del_char(curbuf->curline, curbuf->icol - 1); 
+        curbuf->icol--;
     }
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
 
-static void ins_break_line(Line * line) 
+static void ins_break_line() 
 {
-    char *str = edit_del_str(line, curbuf->icol, line->size - curbuf->icol + 1);
-    line_insert_after(line, &curbuf->tail, str, strlen(str));
+    Line *line = curbuf->curline;
+    int len = line->size - curbuf->icol;
+    char *del_str = edit_substr(line->content, curbuf->icol, len);
+    edit_del_str(line, curbuf->icol, len);
+    line_insert_after(line, del_str, len);
+    curbuf->curline = line->next;
 
-    win_render_lines(curwin);
     curbuf->icol = 0;
     curbuf->iline++;
+    win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
 
-static void ins_add_line_before(Line * line)
+static void ins_add_line_after()
 {
-    line_insert_before(&curbuf->head, line, NULL, 0);
-    curbuf->nlines++;
-    win_render_lines(curwin);
+    line_insert_after(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->iline++;
-    cursor_refresh(curwin);
-}
-
-
-static void ins_add_line_after(Line * line)
-{
-    line_insert_after(line, &curbuf->tail, NULL, 0);
-    curbuf->nlines++;
+    curbuf->curline = curbuf->curline->next;
     win_render_lines(curwin);
-    curbuf->icol = 0;
-    curbuf->iline++;
     cursor_refresh(curwin);
 }
 
 
 static void ins_enter()
 {
-    Line * line = curbuf->curline;
-    if (curbuf->icol >= line->size) {
-        ins_add_line_after(line);
+    if (curbuf->icol >= curbuf->curline->size) {
+        ins_add_line_after();
         return;
     } 
-    if (curbuf->icol == 0) {
-        ins_add_line_before(line);
-        return;
-    } 
-    ins_break_line(line);
+    ins_break_line();
 }
 
 

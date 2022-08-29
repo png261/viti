@@ -46,8 +46,8 @@ struct window {
 };
 
 
-Win *win_resize(Win * win, int lines, int cols); 
 Win *win_create(Buffer * buf, int lines, int cols, int y, int x);
+Win *win_resize(Win * win, int lines, int cols); 
 void win_render(Win * win); 
 void win_render_numbercol(Win * win); 
 void win_render_lines(Win * win); 

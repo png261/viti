@@ -21,35 +21,24 @@ extern char *search_query;
 
 void update_top_line(Win *win)
 {
-    if(curbuf->iline == 0) {
-        win->top_line = curbuf->head;
-        return;
-    }
-
     Line * line = curbuf->curline;
-    int count = 0;
-    int y = curbuf->iline - win->yoff;
-    while(count < y){
+    int count = curbuf->iline - win->yoff;
+    while(count--){
         if(line->prev == NULL) {
             break;
         }
         line = line->prev;  
-        count++;
     }
     win->top_line = line;
 }
+
 
 void win_scroll(Win *win) 
 {
     Buffer *buf = win->buf;
 
     LIMIT(buf->iline, 0, buf->nlines - 1);
-
-    Line *line = buf->curline;
-    if(line == NULL) {
-        return;
-    }
-    LIMIT(buf->icol, 0, line->size);
+    LIMIT(buf->icol, 0, buf->curline == NULL ? 0 : buf->curline->size);
 
     if (buf->icol < win->xoff) {
         win->xoff = buf->icol;
@@ -132,7 +121,6 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x)
 void print_lines(Win *win)
 {
     Line *line = win->top_line;
-
     for (int y = 0; y < win->wtext_lines; y++) {
         if(line == NULL) {
             return; 
@@ -151,18 +139,18 @@ static void win_update_highlight(Win *win)
         return;
     }
 
-    char line[win->wtext_cols];
     for (int y = 0; y <  win->wtext_lines; y++) {
+        char line[win->wtext_cols];
         mvwinnstr(win->wtext, y, 0, line, win->wtext_cols); 
         highlight_line(win->wtext, line, search_query, PAIR_HIGHLIGHT, y);
     }
 }
 
-/* TODO add start line to render */
 void win_render_lines(Win *win) 
 {
     werase(win->wtext);
 
+    curbuf->nlines = MAX(1, curbuf->nlines);
     print_lines(win);
     win_update_highlight(win);
     win_scroll(win);
@@ -179,7 +167,7 @@ void win_render_numbercol(Win *win)
     wattron(win->wnum, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->wtext_lines; y++) {
-        if (y + win->yoff >= buf->nlines) {
+        if (y + win->yoff > buf->nlines - 1) {
             mvwaddch(win->wnum, y, 0, '~');
             continue;
         } 
@@ -203,7 +191,7 @@ void win_render_statusline(Win *win)
 {
     Buffer *buf = win->buf;
     werase(win->wstatus);
-    wbkgd(win->wstatus, COLOR_PAIR(PAIR_STATUSLINE));
+    wbkgd(win->wstatus, A_REVERSE);
 
     waddstr(win->wstatus, buf->name != NULL ? buf->name : "[NONAME]");
 

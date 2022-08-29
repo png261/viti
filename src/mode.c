@@ -28,7 +28,6 @@ static void mode_loop(int mode, void (*handle_key)(const int))
     do {
         const int c = getch();
         if(c == KEY_RESIZE) {
-            /* TODO: resize all windows when have mutil */
             resize();
             continue;
         }

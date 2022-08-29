@@ -58,13 +58,13 @@ static void search_callback(const char *query, const int c)
 static void search_move() 
 {
     Pos *matched = &match_list[match_index];
-    if (match_count == 0 || matched == NULL) {
+    if (matched == NULL) {
         return;
     }
 
-    mess_send("/%s [%d/%d]", search_query, match_index, match_count);
     curbuf->icol = matched->x;
     curbuf->iline = matched->y;
+    curbuf->curline = matched->line;
     win_scroll(curwin);
     cursor_refresh(curwin);
 }
@@ -126,8 +126,9 @@ void search(Win *win, const char *query)
     while(line != NULL){
         match = line->content;
         while ((match = strstr(match, query)) != NULL) {
-            pos->x = match - line->content;
             pos->y = y;
+            pos->x = match - line->content;
+            pos->line = line;
             pos++;
             match += len;
         }

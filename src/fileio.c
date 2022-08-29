@@ -19,10 +19,10 @@ void file_save(char *filename, Buffer *buf)
 
     Line * line = buf->head;
     while(line != NULL){
-        fputs(line->content, fp);
+        fwrite(line->content, line->size, sizeof(*line->content), fp);
         line = line->next;
         if (line != NULL) {
-            fputs("\n", fp);
+            fwrite("\n", 1, 1, fp);
         }
     }
 
@@ -44,9 +44,7 @@ void file_open(char *filename, Buffer *buf)
     size_t linecap = 0;
 
     while ((getline(&content, &linecap, fp)) != -1) {
-        size_t size = trim(content); 
-        line_push(&buf->head, &buf->tail, content, size);
-        buf->nlines++;
+        line_push(content, trim(content));
     }
 
     buf->curline = buf->head;

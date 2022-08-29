@@ -16,11 +16,9 @@
 
 extern Win *curwin;
 extern Buffer *curbuf;
-
 static void nor_new_line_above()
 {
-    line_insert_before(&curbuf->head, curbuf->curline, NULL, 0);
-    curbuf->nlines++;
+    line_insert_before(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->curline = curbuf->curline->prev;
     update_top_line(curwin);
@@ -32,9 +30,7 @@ static void nor_new_line_above()
 
 static void nor_new_line_below()
 {
-    Line *line = curbuf->curline;
-    line_insert_after(line, &curbuf->tail, NULL, 0);
-    curbuf->nlines++;
+    line_insert_after(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->iline++;
     curbuf->curline = curbuf->curline->next;
@@ -46,9 +42,8 @@ static void nor_new_line_below()
 
 static void nor_join_line()
 {
-    Line *line = curbuf->curline;
-    curbuf->icol = line->size;
-    edit_join_line(line); 
+    curbuf->icol = curbuf->curline->size;
+    edit_join_line(curbuf->curline); 
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
@@ -56,23 +51,15 @@ static void nor_join_line()
 
 static void nor_del_end() 
 {
-    Line * line = curbuf->curline;
-    if(line == NULL) {
-        return;
-    }
-    edit_del_str(line, curbuf->icol, line->size - curbuf->icol);
+    edit_del_str(curbuf->curline, curbuf->icol, curbuf->curline->size - curbuf->icol);
     win_render_lines(curwin);
 }
 
 
 static void nor_del_line()
 {
-    line_remove(&curbuf->head, &curbuf->tail, curbuf->curline);
-    update_top_line(curwin);
-    curbuf->curline = curbuf->curline->next;
-    curbuf->nlines--;
+    line_remove(curbuf->curline);
     win_render_lines(curwin);
-    cursor_refresh(curwin);
 }
 
 
@@ -112,12 +99,7 @@ static void nor_move_start_line()
 
 static void nor_move_screen(int lines)
 {
-    /* TODO: fix */
-    curwin->yoff += lines;
-    curbuf->iline+= lines;
-    LIMIT(curwin->yoff, 0, curbuf->nlines - 1);
-    LIMIT(curbuf->iline, 0, curbuf->nlines - 1);
-    win_render_lines(curwin);
+    /* TODO: add move screen */
 }
 
 static void nor_move_cursor(int lines)
@@ -262,6 +244,7 @@ void normal_mode(const int c)
             break;
         case 'S':
             edit_del_str(curbuf->curline, 0, curbuf->curline->size);
+            win_render_lines(curwin);
             mode_switch(MODE_INSERT);
             break;
         case 'J':
@@ -275,8 +258,7 @@ void normal_mode(const int c)
             mode_switch(MODE_INSERT);
             break;
         case 's':
-            edit_del_char(curbuf->curline, curbuf->icol);
-            cursor_refresh(curwin);
+            nor_del_char();
             mode_switch(MODE_INSERT);
             break;
         case 'a':
