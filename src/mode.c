@@ -2,12 +2,12 @@
 
 #include "buffer.h"
 #include "command.h"
-#include "window.h"
 #include "insert.h"
 #include "message.h"
 #include "normal.h"
 #include "search.h"
 #include "util.h"
+#include "window.h"
 
 #include <ncurses.h>
 

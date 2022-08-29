@@ -3,14 +3,13 @@
 #include "buffer.h"
 #include "cursor.h"
 #include "edit.h"
-#include "util.h"
-#include "memory.h"
 #include "highlight.h"
+#include "key.h"
+#include "memory.h"
 #include "message.h"
 #include "mode.h"
+#include "util.h"
 #include "window.h"
-#include "window.h"
-#include "key.h"
 
 #include <stdlib.h>
 #include <string.h>

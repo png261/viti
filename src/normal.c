@@ -4,12 +4,12 @@
 #include "cursor.h"
 #include "edit.h"
 #include "fileio.h"
+#include "key.h"
 #include "message.h"
 #include "mode.h"
 #include "search.h"
 #include "util.h"
 #include "window.h"
-#include "key.h"
 
 #include <ctype.h> 
 

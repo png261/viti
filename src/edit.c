@@ -1,13 +1,12 @@
 #include "edit.h"
 
-#include "message.h"
 #include "window.h"
 #include "util.h"
 #include "memory.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 
 extern Win *curwin;

@@ -1,9 +1,9 @@
 #include "fileio.h"
 
-#include "message.h"
-#include "window.h"
-#include "util.h"
 #include "memory.h"
+#include "message.h"
+#include "util.h"
+#include "window.h"
 
 #include <stdlib.h>
 #include <string.h>

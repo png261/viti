@@ -1,8 +1,8 @@
 #ifndef VITI_BUFFER_H
 #define VITI_BUFFER_H
 
-#include "window.h"
 #include <stddef.h>
+#include "window.h"
 
 #ifndef INCLUDE_TYPEDEF_BUFFER
 #define INCLUDE_TYPEDEF_BUFFER

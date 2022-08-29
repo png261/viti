@@ -1,8 +1,8 @@
 #ifndef VITI_WINDOW_H
 #define VITI_WINDOW_H
 
-#include "cursor.h"
 #include "buffer.h"
+#include "cursor.h"
 
 #include <ncurses.h>
 

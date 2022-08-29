@@ -1,7 +1,6 @@
 #include "buffer.h"
 
 #include "memory.h"
-#include "message.h"
 #include "window.h"
 #include "util.h"
 
