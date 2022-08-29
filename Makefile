@@ -77,7 +77,7 @@ OBJECTS =$(patsubst %,$(LIBDIR)/%.o,$(NAMES))
 default: all
 
 # Rule for link and generate the binary file
-all: $(OBJECTS)
+all: $(OBJECTS) 
 	@echo -en "$(BROWN)LD $(END_COLOR)";
 	$(CC) -o $(BINDIR)/$(BINARY) $+ $(DEBUG) $(CFLAGS) $(LIBS)
 	@echo -en "\n--\nBinary file placed at" \

@@ -23,7 +23,9 @@ extern Buffer *curbuf;
 static void ncurses_init() 
 {
     initscr();
-    ESCDELAY = 10;
+    set_escdelay(10);
+    /* TODO: handle tab */
+    set_tabsize(1);
     raw();
     noecho();
     keypad(stdscr, TRUE);
@@ -42,14 +44,6 @@ static void init()
 }
 
 
-void check_line()
-{
-    if(curbuf->nlines == 0) {
-        line_push(&curbuf->head, &curbuf->tail, NULL, 0);
-        curbuf->nlines = 1;
-    }
-}
-
 int main(int argc, char *argv[]) 
 {
     init();
@@ -58,7 +52,12 @@ int main(int argc, char *argv[])
         file_open(argv[1],curbuf);
     }
 
-    check_line();
+    if(curbuf->head == NULL) {
+        line_push(NULL, 0);
+        curbuf->curline = curbuf->head;
+        curbuf->nlines = 1;
+    }
+
     update_top_line(curwin);
     win_render(curwin);
     cursor_refresh(curwin);

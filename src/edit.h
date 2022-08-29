@@ -16,7 +16,7 @@ void edit_add_line(Line *line, char * str, size_t size);
 void edit_del_line(Line *line);
 void edit_break_line(Line *line, int col);
 
-char * edit_del_end(Line *line,int col);
-char * edit_del_str(Line *line, int start, int len); 
+void edit_del_str(Line *line, int start, int len); 
+char *edit_substr(char *str, int start, int len);
 
 #endif // VITI_EDIT_H

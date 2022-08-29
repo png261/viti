@@ -3,13 +3,17 @@
 
 #include "window.h"
 
+#include "buffer.h"
+
 #ifndef INCLUDE_TYPEDEF_WINDOW
 #define INCLUDE_TYPEDEF_WINDOW
     typedef struct window Win;
 #endif 
 
 typedef struct Pos{
-    int x,y;
+    int x;
+    int y;
+    Line *line;
 } Pos;
 
 void search_mode();
