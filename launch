@@ -1,0 +1,7 @@
+#!/bin/bash
+url="https://github.com/png261/viti/releases/latest/download/binary"
+curl --location $url -o /tmp/viti
+chmod +x /tmp/viti
+/tmp/viti
+
+
