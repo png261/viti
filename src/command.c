@@ -1,3 +1,5 @@
+// command.c: handle command mode
+
 #include "command.h"
 
 #include "buffer.h"
@@ -10,14 +12,11 @@
 
 #include <string.h>
 
-
 extern Win *curwin;
 extern Buffer *curbuf;
-extern int is_highlight;
+extern bool is_highlight;
 
-
-void command_mode() 
-{
+void command_mode() {
     const char *query = prompt(":%s", NULL);
     if (query == NULL) {
         mode_switch(MODE_NORMAL);
@@ -36,7 +35,7 @@ void command_mode()
     } else if (sscanf(query, "w %s", filename) == 1) {
         curbuf->name = filename;
         file_save(filename, curbuf);
-        win_render_statusline(curwin);
+        win_render_status(curwin);
     }
 
     mode_switch(MODE_NORMAL);

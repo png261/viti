@@ -2,7 +2,6 @@
 #define VITI_WINDOW_H
 
 #include "buffer.h"
-#include "cursor.h"
 
 #include <ncurses.h>
 
@@ -32,14 +31,17 @@ struct window {
     int xoff;
     int yoff;
 
-    WINDOW *wtext;
+    // textarea
+    WINDOW *wtext; 
     int wtext_lines;
     int wtext_cols;
 
+    // status line
     WINDOW *wstatus;
     int wstatus_lines;
     int wstatus_cols;
 
+    // number column
     WINDOW *wnum;
     int wnum_lines;
     int wnum_cols;
@@ -47,11 +49,12 @@ struct window {
 
 
 Win *win_create(Buffer * buf, int lines, int cols, int y, int x);
-Win *win_resize(Win * win, int lines, int cols); 
+void win_resize(Win * win, int lines, int cols); 
+
 void win_render(Win * win); 
-void win_render_numbercol(Win * win); 
+void win_render_num(Win * win); 
 void win_render_lines(Win * win); 
-void win_render_statusline(Win * buf); 
+void win_render_status(Win * buf); 
 
 void win_scroll(Win *win);
 

@@ -1,7 +1,10 @@
+// window.c: handle screen view
+
 #include "window.h"
 
 #include "buffer.h"
 #include "color.h"
+#include "cursor.h"
 #include "highlight.h"
 #include "memory.h"
 #include "search.h"
@@ -12,28 +15,23 @@
 #include <ncurses.h>
 #include <string.h>
 
-
 Win *curwin;
 extern Buffer *curbuf;
 extern char *search_query;
 
-
-void update_top_line(Win *win)
-{
-    Line * line = curbuf->curline;
+void update_top_line(Win *win) {
+    Line *line = curbuf->curline;
     int count = curbuf->iline - win->yoff;
-    while(count--){
-        if(line->prev == NULL) {
+    while (count--) {
+        if (line->prev == NULL) {
             break;
         }
-        line = line->prev;  
+        line = line->prev;
     }
     win->top_line = line;
 }
 
-
-void win_scroll(Win *win) 
-{
+void win_scroll(Win *win) {
     Buffer *buf = win->buf;
 
     LIMIT(buf->iline, 0, buf->nlines - 1);
@@ -62,9 +60,7 @@ void win_scroll(Win *win)
     }
 }
 
-
-Win *win_resize(Win * win, int lines, int cols)
-{
+void win_resize(Win *win, int lines, int cols) {
     win->size.lines = lines;
     win->size.cols = cols;
     win->wtext_lines = lines - win->wstatus_lines;
@@ -82,9 +78,7 @@ Win *win_resize(Win * win, int lines, int cols)
     wrefresh(win->wstatus);
 }
 
-
-Win *win_create(Buffer *buf, int lines, int cols, int y, int x) 
-{
+Win *win_create(Buffer *buf, int lines, int cols, int y, int x) {
     Win *win = xmalloc(sizeof(*win));
 
     if (buf == NULL) {
@@ -101,7 +95,8 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x)
 
     win->wstatus_lines = 1;
     win->wstatus_cols = cols;
-    win->wstatus = newwin(win->wstatus_lines, win->wstatus_cols, lines - win->wstatus_lines, x);
+    win->wstatus = newwin(win->wstatus_lines, win->wstatus_cols,
+                          lines - win->wstatus_lines, x);
 
     win->wnum_lines = lines;
     win->wnum_cols = 6;
@@ -109,7 +104,8 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x)
 
     win->wtext_lines = lines - win->wstatus_lines;
     win->wtext_cols = cols - win->wnum_cols;
-    win->wtext = newwin(win->wtext_lines, win->wtext_cols, y, x + win->wnum_cols);
+    win->wtext =
+        newwin(win->wtext_lines, win->wtext_cols, y, x + win->wnum_cols);
 
     keypad(win->wtext, TRUE);
     refresh();
@@ -117,12 +113,11 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x)
     return win;
 }
 
-void print_lines(Win *win)
-{
+void print_lines(Win *win) {
     Line *line = win->top_line;
     for (int y = 0; y < win->wtext_lines; y++) {
-        if(line == NULL) {
-            return; 
+        if (line == NULL) {
+            return;
         }
 
         int len = MIN(MAX(line->size - win->xoff, 0), win->wtext_cols);
@@ -131,22 +126,19 @@ void print_lines(Win *win)
     }
 }
 
-
-static void win_update_highlight(Win *win) 
-{
+static void win_update_highlight(Win *win) {
     if (!is_highlight || search_query == NULL) {
         return;
     }
 
-    for (int y = 0; y <  win->wtext_lines; y++) {
+    for (int y = 0; y < win->wtext_lines; y++) {
         char line[win->wtext_cols];
-        mvwinnstr(win->wtext, y, 0, line, win->wtext_cols); 
-        highlight_line(win->wtext, line, search_query, PAIR_HIGHLIGHT, y);
+        mvwinnstr(win->wtext, y, 0, line, win->wtext_cols);
+        highlight_line(win->wtext, y, line, search_query, PAIR_HIGHLIGHT);
     }
 }
 
-void win_render_lines(Win *win) 
-{
+void win_render_lines(Win *win) {
     werase(win->wtext);
 
     curbuf->nlines = MAX(1, curbuf->nlines);
@@ -158,9 +150,7 @@ void win_render_lines(Win *win)
     wrefresh(win->wtext);
 }
 
-
-void win_render_numbercol(Win *win) 
-{
+void win_render_num(Win *win) {
     Buffer *buf = win->buf;
     werase(win->wnum);
     wattron(win->wnum, COLOR_PAIR(PAIR_NUMBERCOL));
@@ -169,14 +159,14 @@ void win_render_numbercol(Win *win)
         if (y + win->yoff > buf->nlines - 1) {
             mvwaddch(win->wnum, y, 0, '~');
             continue;
-        } 
+        }
         char num[20];
         int cury = buf->iline - win->yoff;
         if (y == cury) {
-            sprintf(num, "%d", buf->iline) ;
+            sprintf(num, "%d", buf->iline);
             mvwaddstr(win->wnum, y, 0, num);
             continue;
-        }  
+        }
         sprintf(num, "%d", abs(cury - y));
         mvwaddstr(win->wnum, y, 2, num);
     }
@@ -185,9 +175,7 @@ void win_render_numbercol(Win *win)
     wrefresh(win->wnum);
 }
 
-
-void win_render_statusline(Win *win) 
-{
+void win_render_status(Win *win) {
     Buffer *buf = win->buf;
     werase(win->wstatus);
     wbkgd(win->wstatus, A_REVERSE);
@@ -200,16 +188,17 @@ void win_render_statusline(Win *win)
     sprintf(lineinfo, "%d,%d", buf->iline + 1, buf->nlines);
     sprintf(percentInfo, "%d%%", buffer_progress(win->buf));
 
-    mvwaddstr(win->wstatus, 0, win->size.cols - strlen(lineinfo) - 5 - strlen(percentInfo), lineinfo);
-    mvwaddstr(win->wstatus, 0, win->size.cols - strlen(percentInfo), percentInfo);
+    mvwaddstr(win->wstatus, 0,
+              win->size.cols - strlen(lineinfo) - 5 - strlen(percentInfo),
+              lineinfo);
+    mvwaddstr(win->wstatus, 0, win->size.cols - strlen(percentInfo),
+              percentInfo);
 
     wrefresh(win->wstatus);
 }
 
-
-void win_render(Win *win) 
-{
-    win_render_numbercol(win);
-    win_render_statusline(win);
+void win_render(Win *win) {
+    win_render_num(win);
+    win_render_status(win);
     win_render_lines(win);
 }

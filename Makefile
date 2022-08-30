@@ -52,10 +52,10 @@ CC = gcc
 STD = -std=c11 # See man gcc for more options
 
 # Protection for stack-smashing attack
-STACK = -fstack-protector-all -Wstack-protector
+# STACK = -fstack-protector-all -Wstack-protector
 
 # Specifies to GCC the required warnings
-WARNS = -Wall -Wextra -pedantic # -pedantic warns on language standards
+WARNS = -Wall -Wextra -pedantic 
 
 # Flags for compiling 
 CFLAGS = -O3 $(STD) $(STACK) $(WARNS)

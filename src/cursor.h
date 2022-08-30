@@ -1,5 +1,5 @@
 #ifndef VITI_CURSOR_H
-#define CURSOR_H
+#define VITI_CURSOR_H
 
 #include "window.h"
 

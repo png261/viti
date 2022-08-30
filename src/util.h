@@ -1,3 +1,5 @@
+// util.c: some util defines and functions
+
 #ifndef VITI_UTIL_H
 #define VITI_UTIL_H
 
@@ -14,7 +16,6 @@
 void viti_die(const char *errstr, ...);
 void viti_quit();
 
-int countLines(const char *filename);
 size_t trim(char *str); 
 
 #endif // VITI_UTIL_H

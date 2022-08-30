@@ -19,6 +19,6 @@ typedef struct Pos{
 void search_mode();
 void search_next();
 void search_prev();
-void search(Win * win, const char * query);
+void search(const char * query);
 
 #endif // VITI_SEARCH_H

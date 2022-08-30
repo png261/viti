@@ -1,3 +1,5 @@
+// insert.c: handle insert mode
+
 #include "insert.h"
 
 #include "buffer.h"
@@ -11,30 +13,25 @@
 #include <ncurses.h>
 #include <string.h>
 
-
 extern Win *curwin;
 extern Buffer *curbuf;
 
-
-static void ins_del_to_start()
-{
+static void ins_del_to_start() {
     edit_del_str(curbuf->curline, 0, curbuf->icol);
     win_render_lines(curwin);
     curbuf->icol = 0;
     cursor_refresh(curwin);
 }
 
-
-static void ins_put_char(char c)
-{
+static void ins_put_char(char c) {
     edit_append_char(curbuf->curline, curbuf->icol, c);
     curbuf->icol++;
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
-static void ins_join_line(){
-    if(curbuf->iline == 0)  {
+static void ins_join_line() {
+    if (curbuf->iline == 0) {
         return;
     }
     curbuf->icol = curbuf->curline->prev->size;
@@ -43,21 +40,18 @@ static void ins_join_line(){
     curbuf->iline--;
 }
 
-static void ins_del_char()
-{
+static void ins_del_char() {
     if (curbuf->icol == 0) {
         ins_join_line();
     } else {
-        edit_del_char(curbuf->curline, curbuf->icol - 1); 
+        edit_del_char(curbuf->curline, curbuf->icol - 1);
         curbuf->icol--;
     }
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
-
-static void ins_break_line() 
-{
+static void ins_break_line() {
     Line *line = curbuf->curline;
     int len = line->size - curbuf->icol;
     char *del_str = edit_substr(line->content, curbuf->icol, len);
@@ -71,9 +65,7 @@ static void ins_break_line()
     cursor_refresh(curwin);
 }
 
-
-static void ins_add_line_after()
-{
+static void ins_add_line_after() {
     line_insert_after(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->iline++;
@@ -82,51 +74,47 @@ static void ins_add_line_after()
     cursor_refresh(curwin);
 }
 
-
-static void ins_enter()
-{
+static void ins_enter() {
     if (curbuf->icol >= curbuf->curline->size) {
         ins_add_line_after();
         return;
-    } 
+    }
     ins_break_line();
 }
 
-
-void insert_mode(const int c) 
-{
+void insert_mode(const int c) {
     switch (c) {
-        case KEY_LEFT:
-            cursor_left(curwin);
-            break;
-        case KEY_RIGHT:
-            cursor_right(curwin);
-            break;
-        case KEY_DOWN:
-            cursor_down(curwin);
-            break;
-        case KEY_UP:
-            cursor_up(curwin);
-            break;
-        case CTRL('w'):
-            /* TODO del one word */
-            break;
-        case CTRL('u'):
-            ins_del_to_start();
-            break;
-        case CTRL('c'):
-        case ESC:
-            mode_switch(MODE_NORMAL);
-            break;
-        case '\n':
-            ins_enter();
-            break;
-        case CTRL('h'):
-        case KEY_BACKSPACE:
-            ins_del_char();
-            break;
-        default:
-            ins_put_char(c);
-            break;
+    case KEY_LEFT:
+        cursor_left(curwin);
+        break;
+    case KEY_RIGHT:
+        cursor_right(curwin);
+        break;
+    case KEY_DOWN:
+        cursor_down(curwin);
+        break;
+    case KEY_UP:
+        cursor_up(curwin);
+        break;
+    case CTRL('w'):
+        /* TODO del one word */
+        break;
+    case CTRL('u'):
+        ins_del_to_start();
+        break;
+    case CTRL('c'):
+    case ESC:
+        mode_switch(MODE_NORMAL);
+        break;
+    case '\n':
+        ins_enter();
+        break;
+    case CTRL('h'):
+    case KEY_BACKSPACE:
+        ins_del_char();
+        break;
+    default:
+        ins_put_char(c);
+        break;
     }
 }
