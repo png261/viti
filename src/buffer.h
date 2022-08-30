@@ -2,7 +2,6 @@
 #define VITI_BUFFER_H
 
 #include <stddef.h>
-#include "window.h"
 
 #ifndef INCLUDE_TYPEDEF_BUFFER
 #define INCLUDE_TYPEDEF_BUFFER

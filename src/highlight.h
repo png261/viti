@@ -1,5 +1,5 @@
 #ifndef VITI_HIGHLIGHT_H
-#define VITI_HIGHTLIHGT_H
+#define VITI_HIGHLIGHT_H
 
 #include "window.h" 
 
@@ -12,6 +12,6 @@
 
 extern bool is_highlight; 
 
-void highlight_line(WINDOW * win, char *line, const char* query, int color_pair, int y);
+void highlight_line(WINDOW * win, int y, char *line, const char* query, int color_pair);
 
 #endif // VITI_HIGHLIGHT_H

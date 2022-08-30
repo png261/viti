@@ -1,3 +1,5 @@
+// message.c: handle messsage, prompt on command line
+
 #include "message.h"
 
 #include "key.h"
@@ -9,21 +11,18 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-
 Message mess;
 
 extern Win *curwin;
 
-void mess_resize(){
+void mess_resize() {
     wresize(mess.win, 1, COLS);
     mvwin(mess.win, LINES - 1, 0);
     wrefresh(mess.win);
     refresh();
 }
 
-
-void mess_send(const char *format, ...) 
-{
+void mess_send(const char *format, ...) {
     wclear(mess.win);
     va_list ap;
     va_start(ap, format);
@@ -35,9 +34,7 @@ void mess_send(const char *format, ...)
     touchwin(curwin->wtext);
 }
 
-
-char *prompt(const char *format, void (*callback)(const char *, int)) 
-{
+char *prompt(const char *format, void (*callback)(const char *, int)) {
     size_t size = 128;
     char *str = xmalloc(size);
     size_t strlen = 0;

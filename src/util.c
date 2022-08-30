@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-void viti_die(const char *errstr, ...) 
-{
+void viti_die(const char *errstr, ...) {
     clear();
     endwin();
 
@@ -18,36 +16,16 @@ void viti_die(const char *errstr, ...)
     exit(1);
 }
 
-
-void viti_quit() 
-{
+void viti_quit() {
     clear();
     endwin();
     exit(0);
 }
 
-int countLines(const char *filename) 
-{
-    FILE *fp = fopen(filename, "r");
-    char *line = NULL;
-    size_t linecap = 0;
-    int count = 0;
-    while ((getline(&line, &linecap, fp)) != -1) {
-        count++;
-    }
-
-    free(line);
-    fclose(fp);
-    return count;
-}
-
-
-size_t trim(char *str) 
-{
+size_t trim(char *str) {
     char *c = str + strlen(str) - 1;
     while (*c == '\n' || *c == ' ') {
         *c = '\0';
     }
     return strlen(str);
 }
-
