@@ -1,3 +1,6 @@
 test
 lib/* 
 bin/*
+
+!lib/.gitkeep
+!bin/.gitkeep
