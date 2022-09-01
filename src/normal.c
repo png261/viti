@@ -14,10 +14,12 @@
 #include "window.h"
 
 #include <ctype.h>
+#include <string.h>
 
 extern Win *curwin;
 extern Buffer *curbuf;
-static void nor_new_line_above() {
+
+static void new_line_above() {
     line_insert_before(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->curline = curbuf->curline->prev;
@@ -27,7 +29,7 @@ static void nor_new_line_above() {
     mode_switch(MODE_INSERT);
 }
 
-static void nor_new_line_below() {
+static void new_line_below() {
     line_insert_after(curbuf->curline, NULL, 0);
     curbuf->icol = 0;
     curbuf->iline++;
@@ -37,25 +39,25 @@ static void nor_new_line_below() {
     mode_switch(MODE_INSERT);
 }
 
-static void nor_join_line() {
+static void join_line() {
     curbuf->icol = curbuf->curline->size;
     edit_join_line(curbuf->curline);
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
-static void nor_del_end() {
+static void del_end() {
     edit_del_str(curbuf->curline, curbuf->icol,
                  curbuf->curline->size - curbuf->icol);
     win_render_lines(curwin);
 }
 
-static void nor_del_line() {
+static void del_line() {
     line_remove(curbuf->curline);
     win_render_lines(curwin);
 }
 
-static void nor_replace_char() {
+static void replace_char() {
     char c = getch();
     /* TODO: fix special character */
     if (c == ESC) {
@@ -66,34 +68,34 @@ static void nor_replace_char() {
     win_render_lines(curwin);
 }
 
-static void nor_del_char() {
+static void del_char() {
     edit_del_char(curbuf->curline, curbuf->icol);
     win_render_lines(curwin);
     cursor_refresh(curwin);
 }
 
-static void nor_move_end_line() {
+static void move_end_line() {
     curbuf->icol = curbuf->curline->size;
     cursor_refresh(curwin);
 }
 
-static void nor_move_start_line() {
+static void move_start_line() {
     curbuf->icol = 0;
     cursor_refresh(curwin);
 }
 
-static void nor_move_screen(int lines) {
+static void move_screen(int lines) {
     curwin->yoff = MAX(0, curwin->yoff + lines);
     curbuf->iline += lines;
     win_scroll(curwin);
 }
 
-static void nor_move_cursor(int lines) {
+static void move_cursor(int lines) {
     curbuf->iline = curwin->yoff + lines;
     cursor_refresh(curwin);
 }
 
-static void nor_go_top() {
+static void go_top() {
 
     curbuf->iline = 0;
     curbuf->curline = curbuf->head;
@@ -103,7 +105,7 @@ static void nor_go_top() {
     cursor_refresh(curwin);
 }
 
-static void nor_go_bottom() {
+static void go_bottom() {
     curbuf->iline = curbuf->nlines - 1;
     curbuf->curline = curbuf->tail;
     win_scroll(curwin);
@@ -112,15 +114,79 @@ static void nor_go_bottom() {
     cursor_refresh(curwin);
 }
 
-static void nor_show_info() {
+static void show_info() {
     mess_send("\"%s\" %d lines, --%d%%--", curbuf->name, curbuf->nlines,
               buffer_progress(curbuf));
 }
 
-static void nor_swapchar() {
+static void swapchar() {
     Line *line = curbuf->curline;
     char *c = &line->content[curbuf->icol];
     *c = islower(*c) ? toupper(*c) : tolower(*c);
+    win_render_lines(curwin);
+}
+
+static int nextrune(int inc) {
+    int n;
+    for (n = curbuf->icol + inc;
+         n + inc >= 0 && (curbuf->curline->content[n] & 0xc0) == 0x80; n += inc)
+        ;
+    return n;
+}
+
+static void move_word_forward() {
+    char *text = curbuf->curline->content;
+    if (curbuf->icol > curbuf->curline->size) {
+        curbuf->icol = 0;
+        curbuf->iline++;
+        curbuf->curline = curbuf->curline->next;
+    } else {
+        while (strchr(" ", text[curbuf->icol])) {
+            curbuf->icol++;
+        }
+        while (!strchr(" ", text[curbuf->icol])) {
+            curbuf->icol++;
+        }
+        curbuf->icol++;
+    }
+
+    win_render_lines(curwin);
+}
+
+static void move_end_word_forward() {
+    char *text = curbuf->curline->content;
+    curbuf->icol++;
+    if (curbuf->icol > curbuf->curline->size) {
+        curbuf->icol = 0;
+        curbuf->iline++;
+        curbuf->curline = curbuf->curline->next;
+    } else {
+        while (strchr(" ", text[curbuf->icol])) {
+            curbuf->icol++;
+        }
+        while (!strchr(" ", text[curbuf->icol])) {
+            curbuf->icol++;
+        }
+        curbuf->icol--;
+    }
+
+    win_render_lines(curwin);
+}
+
+static void move_word_backward() {
+    char *text = curbuf->curline->content;
+    if (curbuf->icol <= 0) {
+        curbuf->iline--;
+        curbuf->curline = curbuf->curline->prev;
+        curbuf->icol = curbuf->curline->size;
+    } else {
+        while (strchr(" ", text[nextrune(-1)])) {
+            curbuf->icol--;
+        }
+        while (!strchr(" ", text[nextrune(-1)])) {
+            curbuf->icol--;
+        }
+    }
     win_render_lines(curwin);
 }
 
@@ -144,27 +210,27 @@ void normal_mode(const int c) {
         cursor_up(curwin);
         break;
     case 'G':
-        nor_go_bottom();
+        go_bottom();
         break;
     case 'g':
         if (getch() == 'g') {
-            nor_go_top();
+            go_top();
         }
         break;
     case CTRL('d'):
-        nor_move_screen(+curwin->wtext_lines / 2);
+        move_screen(+curwin->wtext_lines / 2);
         break;
     case CTRL('u'):
-        nor_move_screen(-curwin->wtext_lines / 2);
+        move_screen(-curwin->wtext_lines / 2);
         break;
     case CTRL('e'):
-        nor_move_screen(-1);
+        move_screen(-1);
         break;
     case CTRL('y'):
-        nor_move_screen(+1);
+        move_screen(+1);
         break;
     case CTRL('g'):
-        nor_show_info();
+        show_info();
         break;
     case CTRL('o'):
         /* TODO move backword jump history */
@@ -173,19 +239,22 @@ void normal_mode(const int c) {
         /* TODO move forward jump history */
         break;
     case 'H':
-        nor_move_cursor(0);
+        move_cursor(0);
         break;
     case 'M':
-        nor_move_cursor(curwin->wtext_lines / 2 - 1);
+        move_cursor(curwin->wtext_lines / 2 - 1);
         break;
     case 'L':
-        nor_move_cursor(curwin->wtext_lines - 1);
+        move_cursor(curwin->wtext_lines - 1);
         break;
     case 'w':
-        /* TODO move word by word */
+        move_word_forward();
+        break;
+    case 'b':
+        move_word_backward();
         break;
     case 'e':
-        /* TODO move end of word */
+        move_end_word_forward();
         break;
     case 'Z':
         if (getch() == 'Q') {
@@ -193,10 +262,10 @@ void normal_mode(const int c) {
         }
         break;
     case '0':
-        nor_move_start_line();
+        move_start_line();
         break;
     case '$':
-        nor_move_end_line();
+        move_end_line();
         break;
 
     // SEARCH
@@ -210,18 +279,18 @@ void normal_mode(const int c) {
     // EDIT
     case 'd':
         if (getch() == 'd') {
-            nor_del_line();
+            del_line();
         }
         break;
     case 'D':
-        nor_del_end();
+        del_end();
         break;
     case 'C':
-        nor_del_end();
+        del_end();
         mode_switch(MODE_INSERT);
         break;
     case 'r':
-        nor_replace_char();
+        replace_char();
         break;
     case 'S':
         edit_del_str(curbuf->curline, 0, curbuf->curline->size);
@@ -229,17 +298,17 @@ void normal_mode(const int c) {
         mode_switch(MODE_INSERT);
         break;
     case 'J':
-        nor_join_line();
+        join_line();
         break;
     case 'x':
-        nor_del_char();
+        del_char();
         break;
     case 'I':
-        nor_move_end_line();
+        move_end_line();
         mode_switch(MODE_INSERT);
         break;
     case 's':
-        nor_del_char();
+        del_char();
         mode_switch(MODE_INSERT);
         break;
     case 'a':
@@ -247,17 +316,17 @@ void normal_mode(const int c) {
         mode_switch(MODE_INSERT);
         break;
     case 'A':
-        nor_move_start_line();
+        move_start_line();
         mode_switch(MODE_INSERT);
         break;
     case 'O':
-        nor_new_line_above();
+        new_line_above();
         break;
     case 'o':
-        nor_new_line_below();
+        new_line_below();
         break;
     case '~':
-        nor_swapchar();
+        swapchar();
         break;
 
     // MODE
