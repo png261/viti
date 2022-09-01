@@ -13,7 +13,7 @@
 
 Message mess;
 
-extern Win *curwin;
+extern Win *cwin;
 
 void mess_resize() {
     wresize(mess.win, 1, COLS);
@@ -31,7 +31,7 @@ void mess_send(const char *format, ...) {
 
     waddstr(mess.win, mess.content);
     wrefresh(mess.win);
-    touchwin(curwin->wtext);
+    touchwin(cwin->wtext);
 }
 
 char *prompt(const char *format, void (*callback)(const char *, int)) {

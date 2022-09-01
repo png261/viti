@@ -17,13 +17,13 @@ struct Line {
 };
 
 struct buffer {
-    Line *head;
-    Line *tail;
-    Line *curline;
-    int nlines;
-    int iline;
-    int icol;
-    char * name;
+    Line *head;     // first line 
+    Line *tail;     // last line
+    Line *cline;    // current line
+    int nlines;     // number lines
+    int iline;      // current index line
+    int icol;       // current index column (index in line content array char)
+    char * name;    // buffer name, filename
 };
 
 Buffer * buffer_create();

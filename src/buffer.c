@@ -13,14 +13,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-Buffer *curbuf;
-extern Win *curwin;
+Buffer *cbuf;
+extern Win *cwin;
 
 Buffer *buffer_create() {
     Buffer *buf = xmalloc(sizeof(*buf));
     buf->head = NULL;
     buf->tail = NULL;
-    buf->curline = NULL;
+    buf->cline = NULL;
     buf->nlines = 0;
 
     buf->iline = 0;
@@ -42,14 +42,14 @@ static Line *line_new(char *content, size_t size) {
 
 void line_push(char *content, size_t size) {
     Line *new = line_new(content, size);
-    if (curbuf->nlines == 0) {
-        curbuf->head = new;
+    if (cbuf->nlines == 0) {
+        cbuf->head = new;
     } else {
-        curbuf->tail->next = new;
-        new->prev = curbuf->tail;
+        cbuf->tail->next = new;
+        new->prev = cbuf->tail;
     }
-    curbuf->tail = new;
-    curbuf->nlines++;
+    cbuf->tail = new;
+    cbuf->nlines++;
 }
 
 void line_insert_after(Line *line, char *content, size_t size) {
@@ -57,25 +57,25 @@ void line_insert_after(Line *line, char *content, size_t size) {
     new->next = line->next;
     line->next = new;
     new->prev = line;
-    if (line == curbuf->tail) {
-        curbuf->tail = new;
+    if (line == cbuf->tail) {
+        cbuf->tail = new;
     } else {
         new->next->prev = new;
     }
-    curbuf->nlines++;
+    cbuf->nlines++;
 }
 
 void line_insert_before(Line *line, char *content, size_t size) {
     Line *new = line_new(content, size);
     new->next = line;
-    if (line == curbuf->head) {
-        curbuf->head = new;
+    if (line == cbuf->head) {
+        cbuf->head = new;
     } else {
         new->prev = line->prev;
         new->prev->next = new;
     }
     line->prev = new;
-    curbuf->nlines++;
+    cbuf->nlines++;
 }
 
 static void free_line(Line *line) {
@@ -85,22 +85,22 @@ static void free_line(Line *line) {
 }
 
 static void line_remove_head() {
-    if (curbuf->curline == curbuf->head) {
-        curbuf->curline = curbuf->head->next;
+    if (cbuf->cline == cbuf->head) {
+        cbuf->cline = cbuf->head->next;
     }
-    update_top_line(curwin);
-    curbuf->head = curbuf->head->next;
-    curbuf->head->prev = NULL;
-    curbuf->nlines--;
+    update_tline(cwin);
+    cbuf->head = cbuf->head->next;
+    cbuf->head->prev = NULL;
+    cbuf->nlines--;
 }
 
 static void line_remove_tail() {
-    if (curbuf->curline == curbuf->tail) {
-        curbuf->curline = curbuf->tail->prev;
+    if (cbuf->cline == cbuf->tail) {
+        cbuf->cline = cbuf->tail->prev;
     }
-    curbuf->tail = curbuf->tail->prev;
-    curbuf->tail->next = NULL;
-    curbuf->nlines--;
+    cbuf->tail = cbuf->tail->prev;
+    cbuf->tail->next = NULL;
+    cbuf->nlines--;
 }
 
 static void line_empty(Line *line) {
@@ -110,27 +110,27 @@ static void line_empty(Line *line) {
 }
 
 void line_remove(Line *del) {
-    if (curbuf->nlines == 1) {
+    if (cbuf->nlines == 1) {
         line_empty(del);
         return;
     }
 
-    if (del == curbuf->head) {
+    if (del == cbuf->head) {
         line_remove_head();
         free(del);
         return;
     }
-    if (del == curbuf->tail) {
+    if (del == cbuf->tail) {
         line_remove_tail();
         free(del);
         return;
     }
-    if (curbuf->curline == del) {
-        curbuf->curline = del->next;
+    if (cbuf->cline == del) {
+        cbuf->cline = del->next;
     }
     del->prev->next = del->next;
     del->next->prev = del->prev;
-    curbuf->nlines--;
+    cbuf->nlines--;
     free_line(del);
 }
 

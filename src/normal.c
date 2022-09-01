@@ -16,45 +16,45 @@
 #include <ctype.h>
 #include <string.h>
 
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 
 static void new_line_above() {
-    line_insert_before(curbuf->curline, NULL, 0);
-    curbuf->icol = 0;
-    curbuf->curline = curbuf->curline->prev;
-    update_top_line(curwin);
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    line_insert_before(cbuf->cline, NULL, 0);
+    cbuf->icol = 0;
+    cbuf->cline = cbuf->cline->prev;
+    update_tline(cwin);
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
     mode_switch(MODE_INSERT);
 }
 
 static void new_line_below() {
-    line_insert_after(curbuf->curline, NULL, 0);
-    curbuf->icol = 0;
-    curbuf->iline++;
-    curbuf->curline = curbuf->curline->next;
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    line_insert_after(cbuf->cline, NULL, 0);
+    cbuf->icol = 0;
+    cbuf->iline++;
+    cbuf->cline = cbuf->cline->next;
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
     mode_switch(MODE_INSERT);
 }
 
 static void join_line() {
-    curbuf->icol = curbuf->curline->size;
-    edit_join_line(curbuf->curline);
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    cbuf->icol = cbuf->cline->size;
+    edit_join_line(cbuf->cline);
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void del_end() {
-    edit_del_str(curbuf->curline, curbuf->icol,
-                 curbuf->curline->size - curbuf->icol);
-    win_render_lines(curwin);
+    edit_del_str(cbuf->cline, cbuf->icol,
+                 cbuf->cline->size - cbuf->icol);
+    win_render_lines(cwin);
 }
 
 static void del_line() {
-    line_remove(curbuf->curline);
-    win_render_lines(curwin);
+    line_remove(cbuf->cline);
+    win_render_lines(cwin);
 }
 
 static void replace_char() {
@@ -63,131 +63,131 @@ static void replace_char() {
     if (c == ESC) {
         return;
     }
-    Line *line = curbuf->curline;
-    line->content[curbuf->icol] = c;
-    win_render_lines(curwin);
+    Line *line = cbuf->cline;
+    line->content[cbuf->icol] = c;
+    win_render_lines(cwin);
 }
 
 static void del_char() {
-    edit_del_char(curbuf->curline, curbuf->icol);
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    edit_del_char(cbuf->cline, cbuf->icol);
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void move_end_line() {
-    curbuf->icol = curbuf->curline->size;
-    cursor_refresh(curwin);
+    cbuf->icol = cbuf->cline->size;
+    cursor_refresh(cwin);
 }
 
 static void move_start_line() {
-    curbuf->icol = 0;
-    cursor_refresh(curwin);
+    cbuf->icol = 0;
+    cursor_refresh(cwin);
 }
 
 static void move_screen(int lines) {
-    curwin->yoff = MAX(0, curwin->yoff + lines);
-    curbuf->iline += lines;
-    win_scroll(curwin);
+    cwin->lineoff = MAX(0, cwin->lineoff + lines);
+    cbuf->iline += lines;
+    win_scroll(cwin);
 }
 
 static void move_cursor(int lines) {
-    curbuf->iline = curwin->yoff + lines;
-    cursor_refresh(curwin);
+    cbuf->iline = cwin->lineoff + lines;
+    cursor_refresh(cwin);
 }
 
 static void go_top() {
 
-    curbuf->iline = 0;
-    curbuf->curline = curbuf->head;
-    win_scroll(curwin);
-    win_render_num(curwin);
-    win_render_status(curwin);
-    cursor_refresh(curwin);
+    cbuf->iline = 0;
+    cbuf->cline = cbuf->head;
+    win_scroll(cwin);
+    win_render_num(cwin);
+    win_render_status(cwin);
+    cursor_refresh(cwin);
 }
 
 static void go_bottom() {
-    curbuf->iline = curbuf->nlines - 1;
-    curbuf->curline = curbuf->tail;
-    win_scroll(curwin);
-    win_render_num(curwin);
-    win_render_status(curwin);
-    cursor_refresh(curwin);
+    cbuf->iline = cbuf->nlines - 1;
+    cbuf->cline = cbuf->tail;
+    win_scroll(cwin);
+    win_render_num(cwin);
+    win_render_status(cwin);
+    cursor_refresh(cwin);
 }
 
 static void show_info() {
-    mess_send("\"%s\" %d lines, --%d%%--", curbuf->name, curbuf->nlines,
-              buffer_progress(curbuf));
+    mess_send("\"%s\" %d lines, --%d%%--", cbuf->name, cbuf->nlines,
+              buffer_progress(cbuf));
 }
 
 static void swapchar() {
-    Line *line = curbuf->curline;
-    char *c = &line->content[curbuf->icol];
+    Line *line = cbuf->cline;
+    char *c = &line->content[cbuf->icol];
     *c = islower(*c) ? toupper(*c) : tolower(*c);
-    win_render_lines(curwin);
+    win_render_lines(cwin);
 }
 
 static int nextrune(int inc) {
     int n;
-    for (n = curbuf->icol + inc;
-         n + inc >= 0 && (curbuf->curline->content[n] & 0xc0) == 0x80; n += inc)
+    for (n = cbuf->icol + inc;
+         n + inc >= 0 && (cbuf->cline->content[n] & 0xc0) == 0x80; n += inc)
         ;
     return n;
 }
 
 static void move_word_forward() {
-    char *text = curbuf->curline->content;
-    if (curbuf->icol > curbuf->curline->size) {
-        curbuf->icol = 0;
-        curbuf->iline++;
-        curbuf->curline = curbuf->curline->next;
+    char *text = cbuf->cline->content;
+    if (cbuf->icol > cbuf->cline->size) {
+        cbuf->icol = 0;
+        cbuf->iline++;
+        cbuf->cline = cbuf->cline->next;
     } else {
-        while (strchr(" ", text[curbuf->icol])) {
-            curbuf->icol++;
+        while (strchr(" ", text[cbuf->icol])) {
+            cbuf->icol++;
         }
-        while (!strchr(" ", text[curbuf->icol])) {
-            curbuf->icol++;
+        while (!strchr(" ", text[cbuf->icol])) {
+            cbuf->icol++;
         }
-        curbuf->icol++;
+        cbuf->icol++;
     }
 
-    win_render_lines(curwin);
+    win_render_lines(cwin);
 }
 
 static void move_end_word_forward() {
-    char *text = curbuf->curline->content;
-    curbuf->icol++;
-    if (curbuf->icol > curbuf->curline->size) {
-        curbuf->icol = 0;
-        curbuf->iline++;
-        curbuf->curline = curbuf->curline->next;
+    char *text = cbuf->cline->content;
+    cbuf->icol++;
+    if (cbuf->icol > cbuf->cline->size) {
+        cbuf->icol = 0;
+        cbuf->iline++;
+        cbuf->cline = cbuf->cline->next;
     } else {
-        while (strchr(" ", text[curbuf->icol])) {
-            curbuf->icol++;
+        while (strchr(" ", text[cbuf->icol])) {
+            cbuf->icol++;
         }
-        while (!strchr(" ", text[curbuf->icol])) {
-            curbuf->icol++;
+        while (!strchr(" ", text[cbuf->icol])) {
+            cbuf->icol++;
         }
-        curbuf->icol--;
+        cbuf->icol--;
     }
 
-    win_render_lines(curwin);
+    win_render_lines(cwin);
 }
 
 static void move_word_backward() {
-    char *text = curbuf->curline->content;
-    if (curbuf->icol <= 0) {
-        curbuf->iline--;
-        curbuf->curline = curbuf->curline->prev;
-        curbuf->icol = curbuf->curline->size;
+    char *text = cbuf->cline->content;
+    if (cbuf->icol <= 0) {
+        cbuf->iline--;
+        cbuf->cline = cbuf->cline->prev;
+        cbuf->icol = cbuf->cline->size;
     } else {
         while (strchr(" ", text[nextrune(-1)])) {
-            curbuf->icol--;
+            cbuf->icol--;
         }
         while (!strchr(" ", text[nextrune(-1)])) {
-            curbuf->icol--;
+            cbuf->icol--;
         }
     }
-    win_render_lines(curwin);
+    win_render_lines(cwin);
 }
 
 void normal_mode(const int c) {
@@ -195,19 +195,19 @@ void normal_mode(const int c) {
     // MOVE
     case KEY_LEFT:
     case 'h':
-        cursor_left(curwin);
+        cursor_left(cwin);
         break;
     case KEY_RIGHT:
     case 'l':
-        cursor_right(curwin);
+        cursor_right(cwin);
         break;
     case KEY_DOWN:
     case 'j':
-        cursor_down(curwin);
+        cursor_down(cwin);
         break;
     case KEY_UP:
     case 'k':
-        cursor_up(curwin);
+        cursor_up(cwin);
         break;
     case 'G':
         go_bottom();
@@ -218,10 +218,10 @@ void normal_mode(const int c) {
         }
         break;
     case CTRL('d'):
-        move_screen(+curwin->wtext_lines / 2);
+        move_screen(+cwin->wtext_lines / 2);
         break;
     case CTRL('u'):
-        move_screen(-curwin->wtext_lines / 2);
+        move_screen(-cwin->wtext_lines / 2);
         break;
     case CTRL('e'):
         move_screen(-1);
@@ -242,10 +242,10 @@ void normal_mode(const int c) {
         move_cursor(0);
         break;
     case 'M':
-        move_cursor(curwin->wtext_lines / 2 - 1);
+        move_cursor(cwin->wtext_lines / 2 - 1);
         break;
     case 'L':
-        move_cursor(curwin->wtext_lines - 1);
+        move_cursor(cwin->wtext_lines - 1);
         break;
     case 'w':
         move_word_forward();
@@ -293,8 +293,8 @@ void normal_mode(const int c) {
         replace_char();
         break;
     case 'S':
-        edit_del_str(curbuf->curline, 0, curbuf->curline->size);
-        win_render_lines(curwin);
+        edit_del_str(cbuf->cline, 0, cbuf->cline->size);
+        win_render_lines(cwin);
         mode_switch(MODE_INSERT);
         break;
     case 'J':
@@ -312,7 +312,7 @@ void normal_mode(const int c) {
         mode_switch(MODE_INSERT);
         break;
     case 'a':
-        cursor_right(curwin);
+        cursor_right(cwin);
         mode_switch(MODE_INSERT);
         break;
     case 'A':
