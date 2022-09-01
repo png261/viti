@@ -13,69 +13,69 @@
 #include <ncurses.h>
 #include <string.h>
 
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 
 static void ins_del_to_start() {
-    edit_del_str(curbuf->curline, 0, curbuf->icol);
-    win_render_lines(curwin);
-    curbuf->icol = 0;
-    cursor_refresh(curwin);
+    edit_del_str(cbuf->cline, 0, cbuf->icol);
+    win_render_lines(cwin);
+    cbuf->icol = 0;
+    cursor_refresh(cwin);
 }
 
 static void ins_put_char(char c) {
-    edit_append_char(curbuf->curline, curbuf->icol, c);
-    curbuf->icol++;
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    edit_append_char(cbuf->cline, cbuf->icol, c);
+    cbuf->icol++;
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void ins_join_line() {
-    if (curbuf->iline == 0) {
+    if (cbuf->iline == 0) {
         return;
     }
-    curbuf->icol = curbuf->curline->prev->size;
-    edit_join_line(curbuf->curline->prev);
-    curbuf->curline = curbuf->curline->prev;
-    curbuf->iline--;
+    cbuf->icol = cbuf->cline->prev->size;
+    edit_join_line(cbuf->cline->prev);
+    cbuf->cline = cbuf->cline->prev;
+    cbuf->iline--;
 }
 
 static void ins_del_char() {
-    if (curbuf->icol == 0) {
+    if (cbuf->icol == 0) {
         ins_join_line();
     } else {
-        edit_del_char(curbuf->curline, curbuf->icol - 1);
-        curbuf->icol--;
+        edit_del_char(cbuf->cline, cbuf->icol - 1);
+        cbuf->icol--;
     }
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void ins_break_line() {
-    Line *line = curbuf->curline;
-    int len = line->size - curbuf->icol;
-    char *del_str = edit_substr(line->content, curbuf->icol, len);
-    edit_del_str(line, curbuf->icol, len);
+    Line *line = cbuf->cline;
+    int len = line->size - cbuf->icol;
+    char *del_str = edit_substr(line->content, cbuf->icol, len);
+    edit_del_str(line, cbuf->icol, len);
     line_insert_after(line, del_str, len);
-    curbuf->curline = line->next;
+    cbuf->cline = line->next;
 
-    curbuf->icol = 0;
-    curbuf->iline++;
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    cbuf->icol = 0;
+    cbuf->iline++;
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void ins_add_line_after() {
-    line_insert_after(curbuf->curline, NULL, 0);
-    curbuf->icol = 0;
-    curbuf->iline++;
-    curbuf->curline = curbuf->curline->next;
-    win_render_lines(curwin);
-    cursor_refresh(curwin);
+    line_insert_after(cbuf->cline, NULL, 0);
+    cbuf->icol = 0;
+    cbuf->iline++;
+    cbuf->cline = cbuf->cline->next;
+    win_render_lines(cwin);
+    cursor_refresh(cwin);
 }
 
 static void ins_enter() {
-    if (curbuf->icol >= curbuf->curline->size) {
+    if (cbuf->icol >= cbuf->cline->size) {
         ins_add_line_after();
         return;
     }
@@ -85,16 +85,16 @@ static void ins_enter() {
 void insert_mode(const int c) {
     switch (c) {
     case KEY_LEFT:
-        cursor_left(curwin);
+        cursor_left(cwin);
         break;
     case KEY_RIGHT:
-        cursor_right(curwin);
+        cursor_right(cwin);
         break;
     case KEY_DOWN:
-        cursor_down(curwin);
+        cursor_down(cwin);
         break;
     case KEY_UP:
-        cursor_up(curwin);
+        cursor_up(cwin);
         break;
     case CTRL('w'):
         /* TODO del one word */

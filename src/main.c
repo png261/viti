@@ -16,8 +16,8 @@
 #include <unistd.h>
 
 extern Message mess;
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 
 static void ncurses_init() {
     // use newterm() instead of initscr() to enable pipes
@@ -37,8 +37,8 @@ static void init() {
     ncurses_init();
     color_init();
     const int commandline = 1;
-    curbuf = buffer_create();
-    curwin = win_create(curbuf, LINES - commandline, COLS, 0, 0);
+    cbuf = buffer_create();
+    cwin = win_create(cbuf, LINES - commandline, COLS, 0, 0);
     mess.win = newwin(commandline, COLS, LINES - commandline, 0);
     refresh();
 }
@@ -60,9 +60,9 @@ static void read_stdin() {
 
 static void create_first_line() {
     // create first line when open a blank file
-    if (curbuf->nlines == 0) {
+    if (cbuf->nlines == 0) {
         line_push(NULL, 0);
-        curbuf->nlines = 1;
+        cbuf->nlines = 1;
     }
 }
 
@@ -70,15 +70,15 @@ int main(int argc, char *argv[]) {
     init();
 
     if (argc >= 2) {
-        file_open(argv[1], curbuf);
+        file_open(argv[1], cbuf);
     } else {
         read_stdin();
     }
     create_first_line();
 
-    curbuf->curline = curbuf->head;
+    cbuf->cline = cbuf->head;
 
-    update_top_line(curwin);
-    win_render(curwin);
+    update_tline(cwin);
+    win_render(cwin);
     mode_switch(MODE_NORMAL);
 }

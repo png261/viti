@@ -19,8 +19,8 @@
 
 char *search_query = NULL;
 
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 extern bool is_highlight;
 
 static int match_index = 0;
@@ -31,13 +31,13 @@ static char *search_query_old = NULL;
 
 static void search_callback(const char *query, const int c) {
     if (strlen(query) == 0) {
-        win_render_lines(curwin);
+        win_render_lines(cwin);
         return;
     }
     if (c == ESC) {
         match_list = match_list_old;
         search_query = search_query_old;
-        win_render_lines(curwin);
+        win_render_lines(cwin);
         return;
     } else if (c == '\n') {
         search_query_old = NULL;
@@ -54,16 +54,16 @@ static void search_move() {
         return;
     }
 
-    curbuf->icol = matched->x;
-    curbuf->iline = matched->y;
-    curbuf->curline = matched->line;
-    win_scroll(curwin);
-    cursor_refresh(curwin);
+    cbuf->icol = matched->x;
+    cbuf->iline = matched->y;
+    cbuf->cline = matched->line;
+    win_scroll(cwin);
+    cursor_refresh(cwin);
 }
 
 static int search_count(const char *query) {
     int count = 0;
-    Line *line = curbuf->head;
+    Line *line = cbuf->head;
     while (line != NULL) {
         char *match = line->content;
         while ((match = strstr(match, query)) != NULL) {
@@ -94,7 +94,7 @@ void search(const char *query) {
     /* count */
     match_count = search_count(query);
     if (match_count == 0) {
-        win_render_lines(curwin);
+        win_render_lines(cwin);
         return;
     }
 
@@ -104,7 +104,7 @@ void search(const char *query) {
     int y = 0;
     Pos *pos = match_list;
     char *match;
-    Line *line = curbuf->head;
+    Line *line = cbuf->head;
     while (line != NULL) {
         match = line->content;
         while ((match = strstr(match, query)) != NULL) {
@@ -117,7 +117,7 @@ void search(const char *query) {
         y++;
         line = line->next;
     }
-    win_render_lines(curwin);
+    win_render_lines(cwin);
     search_move();
 }
 

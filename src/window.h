@@ -25,11 +25,11 @@ typedef struct size {
 struct window {
     Size size;
 
-    Buffer * buf;
-    Line *top_line;
+    Buffer * buf;   // buffer render by window
+    Line *tline;    // top line of screen       
 
-    int xoff;
-    int yoff;
+    int coloff;     // column offset
+    int lineoff;    // line offset
 
     // textarea
     WINDOW *wtext; 
@@ -58,6 +58,6 @@ void win_render_status(Win * buf);
 
 void win_scroll(Win *win);
 
-void update_top_line(Win *win); 
+void update_tline(Win *win); 
 
 #endif // VITI_WINDOW_H

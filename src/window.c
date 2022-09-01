@@ -15,47 +15,47 @@
 #include <ncurses.h>
 #include <string.h>
 
-Win *curwin;
-extern Buffer *curbuf;
+Win *cwin;
+extern Buffer *cbuf;
 extern char *search_query;
 
-void update_top_line(Win *win) {
-    Line *line = curbuf->curline;
-    int count = curbuf->iline - win->yoff;
+void update_tline(Win *win) {
+    Line *line = cbuf->cline;
+    int count = cbuf->iline - win->lineoff;
     while (count--) {
         if (line->prev == NULL) {
             break;
         }
         line = line->prev;
     }
-    win->top_line = line;
+    win->tline = line;
 }
 
 void win_scroll(Win *win) {
     Buffer *buf = win->buf;
 
     LIMIT(buf->iline, 0, buf->nlines - 1);
-    LIMIT(buf->icol, 0, buf->curline == NULL ? 0 : buf->curline->size);
+    LIMIT(buf->icol, 0, buf->cline == NULL ? 0 : buf->cline->size);
 
-    if (buf->icol < win->xoff) {
-        win->xoff = buf->icol;
-        update_top_line(win);
+    if (buf->icol < win->coloff) {
+        win->coloff = buf->icol;
+        update_tline(win);
         win_render_lines(win);
     }
-    if (buf->icol >= win->xoff + win->wtext_cols) {
-        win->xoff = buf->icol - win->wtext_cols + 1;
-        update_top_line(win);
+    if (buf->icol >= win->coloff + win->wtext_cols) {
+        win->coloff = buf->icol - win->wtext_cols + 1;
+        update_tline(win);
         win_render_lines(win);
     }
 
-    if (buf->iline < win->yoff) {
-        win->yoff = buf->iline;
-        update_top_line(win);
+    if (buf->iline < win->lineoff) {
+        win->lineoff = buf->iline;
+        update_tline(win);
         win_render_lines(win);
     }
-    if (buf->iline >= win->yoff + win->wtext_lines) {
-        win->yoff = buf->iline - win->wtext_lines + 1;
-        update_top_line(win);
+    if (buf->iline >= win->lineoff + win->wtext_lines) {
+        win->lineoff = buf->iline - win->wtext_lines + 1;
+        update_tline(win);
         win_render_lines(win);
     }
 }
@@ -87,8 +87,8 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x) {
         win->buf = buf;
     }
 
-    win->xoff = 0;
-    win->yoff = 0;
+    win->coloff = 0;
+    win->lineoff = 0;
 
     win->size.lines = lines;
     win->size.cols = cols;
@@ -114,14 +114,14 @@ Win *win_create(Buffer *buf, int lines, int cols, int y, int x) {
 }
 
 void print_lines(Win *win) {
-    Line *line = win->top_line;
+    Line *line = win->tline;
     for (int y = 0; y < win->wtext_lines; y++) {
         if (line == NULL) {
             return;
         }
 
-        int len = MIN(MAX(line->size - win->xoff, 0), win->wtext_cols);
-        mvwaddnstr(win->wtext, y, 0, &line->content[win->xoff], len);
+        int len = MIN(MAX(line->size - win->coloff, 0), win->wtext_cols);
+        mvwaddnstr(win->wtext, y, 0, &line->content[win->coloff], len);
         line = line->next;
     }
 }
@@ -141,7 +141,7 @@ static void win_update_highlight(Win *win) {
 void win_render_lines(Win *win) {
     werase(win->wtext);
 
-    curbuf->nlines = MAX(1, curbuf->nlines);
+    cbuf->nlines = MAX(1, cbuf->nlines);
     print_lines(win);
     win_update_highlight(win);
     win_scroll(win);
@@ -156,12 +156,12 @@ void win_render_num(Win *win) {
     wattron(win->wnum, COLOR_PAIR(PAIR_NUMBERCOL));
 
     for (int y = 0; y < win->wtext_lines; y++) {
-        if (y + win->yoff > buf->nlines - 1) {
+        if (y + win->lineoff > buf->nlines - 1) {
             mvwaddch(win->wnum, y, 0, '~');
             continue;
         }
         char num[20];
-        int cury = buf->iline - win->yoff;
+        int cury = buf->iline - win->lineoff;
         if (y == cury) {
             sprintf(num, "%d", buf->iline);
             mvwaddstr(win->wnum, y, 0, num);

@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 
 void edit_append_char(Line *line, int col, const char c) {
     line->content = xrealloc(line->content, line->size + 2);

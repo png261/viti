@@ -13,14 +13,14 @@
 
 #include <ncurses.h>
 
-extern Win *curwin;
+extern Win *cwin;
 static int State = MODE_NORMAL;
 
 void resize() {
-    win_resize(curwin, LINES - 1, COLS);
+    win_resize(cwin, LINES - 1, COLS);
     mess_resize();
     refresh();
-    win_render(curwin);
+    win_render(cwin);
 }
 
 static void mode_loop(int mode, void (*handle_key)(const int)) {

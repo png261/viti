@@ -12,8 +12,8 @@
 
 #include <string.h>
 
-extern Win *curwin;
-extern Buffer *curbuf;
+extern Win *cwin;
+extern Buffer *cbuf;
 extern bool is_highlight;
 
 void command_mode() {
@@ -28,17 +28,17 @@ void command_mode() {
     if (strcmp(query, "q") == 0) {
         viti_quit();
     } else if (strcmp(query, "w") == 0) {
-        file_save(curbuf->name, curbuf);
+        file_save(cbuf->name, cbuf);
     } else if (strcmp(query, "x") == 0) {
-        file_save(curbuf->name, curbuf);
+        file_save(cbuf->name, cbuf);
         viti_quit();
     } else if (strcmp(query, "noh") == 0) {
         is_highlight = false;
-        win_render_lines(curwin);
+        win_render_lines(cwin);
     } else if (sscanf(query, "w %s", filename) == 1) {
-        curbuf->name = filename;
-        file_save(filename, curbuf);
-        win_render_status(curwin);
+        cbuf->name = filename;
+        file_save(filename, cbuf);
+        win_render_status(cwin);
     }
 
     mode_switch(MODE_NORMAL);
