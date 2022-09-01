@@ -29,6 +29,9 @@ void command_mode() {
         viti_quit();
     } else if (strcmp(query, "w") == 0) {
         file_save(curbuf->name, curbuf);
+    } else if (strcmp(query, "x") == 0) {
+        file_save(curbuf->name, curbuf);
+        viti_quit();
     } else if (strcmp(query, "noh") == 0) {
         is_highlight = false;
         win_render_lines(curwin);
