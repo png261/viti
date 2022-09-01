@@ -47,8 +47,7 @@ static void join_line() {
 }
 
 static void del_end() {
-    edit_del_str(cbuf->cline, cbuf->icol,
-                 cbuf->cline->size - cbuf->icol);
+    edit_del_str(cbuf->cline, cbuf->icol, cbuf->cline->size - cbuf->icol);
     win_render_lines(cwin);
 }
 
@@ -190,6 +189,18 @@ static void move_word_backward() {
     win_render_lines(cwin);
 }
 
+static void find_char(int inc, char c) {
+    int n = cbuf->icol + inc;
+    while (n > 0 && n < cbuf->cline->size) {
+        if (cbuf->cline->content[n] == c) {
+            cbuf->icol = n;
+            win_render_lines(cwin);
+            return;
+        }
+        n += inc;
+    }
+}
+
 void normal_mode(const int c) {
     switch (c) {
     // MOVE
@@ -255,6 +266,12 @@ void normal_mode(const int c) {
         break;
     case 'e':
         move_end_word_forward();
+        break;
+    case 'f':
+        find_char(1, getch());
+        break;
+    case 'F':
+        find_char(-1, getch());
         break;
     case 'Z':
         if (getch() == 'Q') {
