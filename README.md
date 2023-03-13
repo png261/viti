@@ -1,8 +1,8 @@
 <div align="center">
     <h1>viti</h1>
-    <br>
-    <br>
 </div>
+
+![Screenshot](https://user-images.githubusercontent.com/63899044/224663093-87ebc57f-2cfe-423d-aaf7-10224976a808.png)
 
 ### Install(linux)
 #### with make
