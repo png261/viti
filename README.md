@@ -2,7 +2,7 @@
     <h1>viti</h1>
 </div>
 
-![Screenshot](https://user-images.githubusercontent.com/63899044/224663093-87ebc57f-2cfe-423d-aaf7-10224976a808.png)
+![Screenshot](https://user-images.githubusercontent.com/63899044/224663467-2fd1231f-5880-4f75-ab0c-ba9496bf35da.png)
 
 ### Install(linux)
 #### with make
