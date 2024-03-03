@@ -321,7 +321,7 @@ void normal_mode(const int c) {
         del_char();
         break;
     case 'I':
-        move_end_line();
+        move_start_line();
         mode_switch(MODE_INSERT);
         break;
     case 's':
@@ -333,7 +333,7 @@ void normal_mode(const int c) {
         mode_switch(MODE_INSERT);
         break;
     case 'A':
-        move_start_line();
+        move_end_line();
         mode_switch(MODE_INSERT);
         break;
     case 'O':
