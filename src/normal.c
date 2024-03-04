@@ -128,14 +128,19 @@ static void swapchar() {
 static int nextrune(int inc) {
     int n;
     for (n = cbuf->icol + inc;
-         n + inc >= 0 && (cbuf->cline->content[n] & 0xc0) == 0x80; n += inc)
+         (n + inc >= 0) && (cbuf->cline->content[n] & 0xc0) == 0x80; n += inc)
         ;
     return n;
 }
 
 static void move_word_forward() {
-    char *text = cbuf->cline->content;
-    if (cbuf->icol > cbuf->cline->size) {
+    const char *text = cbuf->cline->content;
+
+    if ((cbuf->icol == cbuf->cline->size) && (cbuf->iline == cbuf-> nlines - 1)) {
+        return;
+    }
+
+    if (cbuf->icol >= cbuf->cline->size) {
         cbuf->icol = 0;
         cbuf->iline++;
         cbuf->cline = cbuf->cline->next;
@@ -153,7 +158,12 @@ static void move_word_forward() {
 }
 
 static void move_end_word_forward() {
-    char *text = cbuf->cline->content;
+    const char *text = cbuf->cline->content;
+
+    if ((cbuf->icol == cbuf->cline->size) && (cbuf->iline == cbuf-> nlines - 1)) {
+        return;
+    }
+
     cbuf->icol++;
     if (cbuf->icol > cbuf->cline->size) {
         cbuf->icol = 0;
@@ -173,8 +183,13 @@ static void move_end_word_forward() {
 }
 
 static void move_word_backward() {
-    char *text = cbuf->cline->content;
-    if (cbuf->icol <= 0 && cbuf->iline > 0) {
+    const char *text = cbuf->cline->content;
+
+    if ((cbuf->icol == 0) && (cbuf->iline ==  0)) {
+        return;
+    }
+
+    if ((cbuf->icol <= 0) && (cbuf->iline > 0)) {
         cbuf->iline--;
         cbuf->cline = cbuf->cline->prev;
         cbuf->icol = cbuf->cline->size;
@@ -191,7 +206,7 @@ static void move_word_backward() {
 
 static void find_char(int inc, char c) {
     int n = cbuf->icol + inc;
-    while (n > 0 && n < cbuf->cline->size) {
+    while ((n > 0) && (n < cbuf->cline->size)) {
         if (cbuf->cline->content[n] == c) {
             cbuf->icol = n;
             win_render_lines(cwin);
