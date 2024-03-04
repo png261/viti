@@ -174,7 +174,7 @@ static void move_end_word_forward() {
 
 static void move_word_backward() {
     char *text = cbuf->cline->content;
-    if (cbuf->icol <= 0) {
+    if (cbuf->icol <= 0 && cbuf->iline > 0) {
         cbuf->iline--;
         cbuf->cline = cbuf->cline->prev;
         cbuf->icol = cbuf->cline->size;
